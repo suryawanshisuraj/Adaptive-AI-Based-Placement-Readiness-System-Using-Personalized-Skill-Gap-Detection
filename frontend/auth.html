@@ -375,6 +375,12 @@
         <div class="auth-footer">
           Don't have an account? <span onclick="switchAuthTab('signup')">Create one free</span>
         </div>
+
+        <div style="margin-top: 16px; text-align: center; border-top: 1px solid var(--border-color); padding-top: 16px;">
+          <button type="button" onclick="loginAsDemoUser()" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; padding: 11px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-sans); transition: all 0.2s ease;">
+            <span>⚡</span> Instant Demo Mode (Alex Rivera)
+          </button>
+        </div>
       </div>
 
       <!-- ── SIGN UP FORM ── -->
@@ -432,6 +438,15 @@
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
     const API_BASE = window.location.origin;
+
+    // ─── Instant Demo Mode ───────────────────────────────────────────
+    function loginAsDemoUser() {
+      localStorage.setItem('placement_user_id', 'usr_alex_rivera');
+      localStorage.setItem('placement_user_name', 'Alex Rivera');
+      localStorage.setItem('placement_user_email', 'alex.rivera@campus.edu');
+      showAlert('⚡ Launching Alex Rivera benchmark dashboard...', 'success');
+      setTimeout(() => { window.location.href = '/'; }, 600);
+    }
 
     // ─── Tab switching ────────────────────────────────────────────────
     function switchAuthTab(tab) {

@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 from .database import init_db
 from .api.routes_profile import router as profile_router
@@ -19,7 +19,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for local development and web clients
+# Enable CORS — allow all origins (covers localhost dev + Vercel production)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -37,11 +37,12 @@ app.include_router(research_router)
 app.include_router(interview_router)
 app.include_router(resume_router)
 
-# Mount frontend static files
+# Resolve frontend directory path (works both locally and on Vercel)
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
 
+# Mount static assets (css/js/images) only if the directory exists
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
@@ -49,18 +50,18 @@ if os.path.exists(FRONTEND_DIR):
 def on_startup():
     init_db()
 
-@app.get("/auth")
+@app.get("/auth", include_in_schema=False)
 def serve_auth():
     auth_path = os.path.join(FRONTEND_DIR, "auth.html")
     if os.path.exists(auth_path):
-        return FileResponse(auth_path)
-    return {"error": "auth.html not found"}
+        return FileResponse(auth_path, media_type="text/html")
+    return HTMLResponse("<h1>auth.html not found</h1>", status_code=404)
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def serve_index():
     index_path = os.path.join(FRONTEND_DIR, "index.html")
     if os.path.exists(index_path):
-        return FileResponse(index_path)
+        return FileResponse(index_path, media_type="text/html")
     return {
         "status": "online",
         "system": "Adaptive AI-Based Placement Readiness System",

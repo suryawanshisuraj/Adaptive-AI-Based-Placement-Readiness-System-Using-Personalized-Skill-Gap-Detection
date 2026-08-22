@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — Adaptive AI Placement Readiness System</title>
+  <meta name="description" content="Sign in or create your account to access your personalized AI-powered placement readiness dashboard.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-card: rgba(17, 24, 39, 0.80);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.3);
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.18) 0px, transparent 55%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 55%),
+        radial-gradient(at 50% 20%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+    }
+
+    /* Animated orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+      animation: floatOrb 12s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; animation-delay: 0s; }
+    .orb-2 { width: 400px; height: 400px; background: #06b6d4; bottom: -100px; right: -100px; animation-delay: -4s; }
+    .orb-3 { width: 300px; height: 300px; background: #a855f7; top: 50%; left: 60%; animation-delay: -8s; }
+
+    @keyframes floatOrb {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 30px) scale(0.95); }
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+    }
+
+    .auth-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 480px;
+      padding: 20px;
+    }
+
+    /* Logo / Brand */
+    .brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .brand-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 18px;
+      font-size: 28px;
+      margin-bottom: 16px;
+      box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+      animation: pulseIcon 3s ease-in-out infinite;
+    }
+    @keyframes pulseIcon {
+      0%, 100% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.4); }
+      50% { box-shadow: 0 0 50px rgba(99, 102, 241, 0.7); }
+    }
+    .brand h1 {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f8fafc, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.3;
+    }
+    .brand p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Card */
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 36px 40px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 25px 60px -15px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    /* Tab toggle */
+    .tab-group {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      border-radius: 9px;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--primary), #a855f7);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+    }
+
+    /* Form */
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: all 0.2s ease;
+      -webkit-appearance: none;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.08);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .form-group select option { background: #1e2537; }
+    .form-group input::placeholder { color: var(--text-muted); }
+
+    /* Password wrapper */
+    .pw-wrapper { position: relative; }
+    .pw-wrapper input { padding-right: 46px; }
+    .pw-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      transition: color 0.2s;
+    }
+    .pw-toggle:hover { color: var(--text-secondary); }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--primary), #a855f7);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn-submit:hover::before { opacity: 1; }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(99,102,241,0.45); }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* Alert message */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 18px;
+      display: none;
+    }
+    .alert.error { background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.3); color: #fda4af; }
+    .alert.success { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+    .alert.show { display: block; animation: slideIn 0.3s ease; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-color);
+    }
+
+    /* Footer note */
+    .auth-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .auth-footer span { color: var(--primary); cursor: pointer; }
+    .auth-footer span:hover { text-decoration: underline; }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Features strip */
+    .features-strip {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .feature-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .feature-chip .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 6px var(--primary);
+    }
+
+    /* Hidden panels */
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+
+    @media (max-width: 520px) {
+      .auth-card { padding: 28px 24px; }
+      .brand h1 { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="auth-wrapper">
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-icon">🎯</div>
+      <h1>Adaptive AI Placement<br>Readiness System</h1>
+      <p>Your personalized path to placement success</p>
+    </div>
+
+    <!-- Card -->
+    <div class="auth-card">
+      <!-- Tab toggle -->
+      <div class="tab-group">
+        <button class="tab-btn active" id="tabSignIn" onclick="switchAuthTab('signin')">Sign In</button>
+        <button class="tab-btn" id="tabSignUp" onclick="switchAuthTab('signup')">Create Account</button>
+      </div>
+
+      <!-- Alert -->
+      <div class="alert" id="authAlert"></div>
+
+      <!-- ── SIGN IN FORM ── -->
+      <div class="form-panel active" id="panelSignIn">
+        <form id="formSignIn" autocomplete="on" onsubmit="handleSignIn(event)">
+          <div class="form-group">
+            <label for="siEmail">Email Address</label>
+            <input type="email" id="siEmail" placeholder="you@university.edu" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="siPassword">Password</label>
+            <div class="pw-wrapper">
+              <input type="password" id="siPassword" placeholder="Enter your password" required autocomplete="current-password">
+              <button type="button" class="pw-toggle" onclick="togglePassword('siPassword', this)">👁️</button>
+            </div>
+          </div>
+          <button type="submit" class="btn-submit" id="btnSignIn">Sign In to Dashboard</button>
+        </form>
+
+        <div class="auth-footer">
+          Don't have an account? <span onclick="switchAuthTab('signup')">Create one free</span>
+        </div>
+      </div>
+
+      <!-- ── SIGN UP FORM ── -->
+      <div class="form-panel" id="panelSignUp">
+        <form id="formSignUp" autocomplete="on" onsubmit="handleSignUp(event)">
+          <div class="form-group">
+            <label for="suName">Full Name</label>
+            <input type="text" id="suName" placeholder="e.g. Alex Rivera" required autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="suEmail">Email Address</label>
+            <input type="email" id="suEmail" placeholder="you@university.edu" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="suPassword">Password</label>
+            <div class="pw-wrapper">
+              <input type="password" id="suPassword" placeholder="Min. 6 characters" required minlength="6" autocomplete="new-password">
+              <button type="button" class="pw-toggle" onclick="togglePassword('suPassword', this)">👁️</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="suRole">Target Job Role</label>
+            <select id="suRole" required>
+              <option value="java_developer">☕ Java Backend Developer</option>
+              <option value="python_developer">🐍 Python / Django Developer</option>
+              <option value="data_analyst">📊 Data Analyst</option>
+              <option value="ml_engineer">🤖 Machine Learning Engineer</option>
+              <option value="web_developer">🌐 Full Stack Web Developer</option>
+              <option value="devops_engineer">⚙️ DevOps / Cloud Engineer</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-submit" id="btnSignUp">Create Account & Start</button>
+        </form>
+
+        <div class="auth-footer">
+          Already have an account? <span onclick="switchAuthTab('signin')">Sign in</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature chips -->
+    <div class="features-strip">
+      <div class="feature-chip"><span class="dot"></span> AI Skill-Gap Detection</div>
+      <div class="feature-chip"><span class="dot"></span> Adaptive Roadmaps</div>
+      <div class="feature-chip"><span class="dot"></span> XAI Explanations</div>
+      <div class="feature-chip"><span class="dot"></span> Live Practice Tests</div>
+    </div>
+  </div>
+
+  <script>
+    // ─── Supabase init ────────────────────────────────────────────────
+    const SUPABASE_URL  = 'https://lxqlvfwubnkvxqkabeag.supabase.co';
+    const SUPABASE_ANON = 'sb_publishable_Z4CG7DBXYvhZs5lunsOqPA_q3H26mhB';
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    const API_BASE = window.location.origin;
+
+    // ─── Tab switching ────────────────────────────────────────────────
+    function switchAuthTab(tab) {
+      document.getElementById('panelSignIn').classList.toggle('active', tab === 'signin');
+      document.getElementById('panelSignUp').classList.toggle('active', tab === 'signup');
+      document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+      document.getElementById('tabSignUp').classList.toggle('active', tab === 'signup');
+      hideAlert();
+    }
+
+    // ─── Alert helpers ────────────────────────────────────────────────
+    function showAlert(msg, type = 'error') {
+      const el = document.getElementById('authAlert');
+      el.textContent = msg;
+      el.className = `alert ${type} show`;
+    }
+    function hideAlert() {
+      document.getElementById('authAlert').className = 'alert';
+    }
+
+    function setLoading(btnId, loading, text) {
+      const btn = document.getElementById(btnId);
+      btn.disabled = loading;
+      btn.innerHTML = loading ? `<span class="spinner"></span>${text}` : text;
+    }
+
+    // ─── Password toggle ──────────────────────────────────────────────
+    function togglePassword(fieldId, btn) {
+      const field = document.getElementById(fieldId);
+      if (field.type === 'password') { field.type = 'text'; btn.textContent = '🙈'; }
+      else { field.type = 'password'; btn.textContent = '👁️'; }
+    }
+
+    // ─── Register user on backend ─────────────────────────────────────
+    async function registerOnBackend(userId, name, email, targetRole) {
+      try {
+        await fetch(`${API_BASE}/api/profile/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: userId, name, email, target_role: targetRole })
+        });
+      } catch (e) {
+        console.warn('Backend register error (non-fatal):', e);
+      }
+    }
+
+    // ─── SIGN IN ──────────────────────────────────────────────────────
+    async function handleSignIn(e) {
+      e.preventDefault();
+      hideAlert();
+      const email    = document.getElementById('siEmail').value.trim();
+      const password = document.getElementById('siPassword').value;
+      setLoading('btnSignIn', true, 'Signing in...');
+
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        const user = data.user;
+        // Sync with backend
+        await registerOnBackend(user.id, user.user_metadata?.full_name || email, email, user.user_metadata?.target_role || 'java_developer');
+
+        localStorage.setItem('placement_user_id', user.id);
+        localStorage.setItem('placement_user_name', user.user_metadata?.full_name || email);
+        localStorage.setItem('placement_user_email', email);
+
+        showAlert('✅ Welcome back! Redirecting...', 'success');
+        setTimeout(() => { window.location.href = '/'; }, 1000);
+      } catch (err) {
+        showAlert('❌ ' + (err.message || 'Sign in failed. Please check your credentials.'));
+        setLoading('btnSignIn', false, 'Sign In to Dashboard');
+      }
+    }
+
+    // ─── SIGN UP ──────────────────────────────────────────────────────
+    async function handleSignUp(e) {
+      e.preventDefault();
+      hideAlert();
+      const name     = document.getElementById('suName').value.trim();
+      const email    = document.getElementById('suEmail').value.trim();
+      const password = document.getElementById('suPassword').value;
+      const role     = document.getElementById('suRole').value;
+      setLoading('btnSignUp', true, 'Creating account...');
+
+      try {
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name, target_role: role }
+          }
+        });
+        if (error) throw error;
+
+        const user = data.user;
+
+        // Register on backend immediately
+        const userId = user?.id || `usr_${Math.random().toString(36).slice(2, 10)}`;
+        await registerOnBackend(userId, name, email, role);
+
+        localStorage.setItem('placement_user_id', userId);
+        localStorage.setItem('placement_user_name', name);
+        localStorage.setItem('placement_user_email', email);
+
+        if (data.session) {
+          // Auto-confirmed (email confirmation off)
+          showAlert('🎉 Account created! Redirecting to dashboard...', 'success');
+          setTimeout(() => { window.location.href = '/'; }, 1200);
+        } else {
+          // Email confirmation required
+          showAlert('📧 Account created! Please check your email to confirm, then sign in.', 'success');
+          setLoading('btnSignUp', false, 'Create Account & Start');
+          setTimeout(() => switchAuthTab('signin'), 3000);
+        }
+      } catch (err) {
+        showAlert('❌ ' + (err.message || 'Sign up failed. Please try again.'));
+        setLoading('btnSignUp', false, 'Create Account & Start');
+      }
+    }
+
+    // ─── Check if already logged in ───────────────────────────────────
+    (async () => {
+      const { data } = await sb.auth.getSession();
+      if (data.session) {
+        const user = data.session.user;
+        localStorage.setItem('placement_user_id', user.id);
+        localStorage.setItem('placement_user_name', user.user_metadata?.full_name || user.email);
+        window.location.href = '/';
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adaptive AI Placement Readiness System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-wrap">
+          <div class="logo-icon">🧠</div>
+          <div class="logo-text">
+            <h1>Adaptive AI</h1>
+            <p>Placement Readiness</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="user-avatar">AR</div>
+        <div class="user-info">
+          <div class="user-name">Alex Rivera</div>
+          <span class="user-role-badge">Campus Candidate</span>
+        </div>
+      </div>
+
+      <ul class="nav-list">
+        <li class="nav-item active" data-tab="tab-dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Placement Readiness</span>
+        </li>
+        <li class="nav-item" data-tab="tab-xai">
+          <span class="nav-icon">🔍</span>
+          <span>Explainable AI (XAI)</span>
+        </li>
+        <li class="nav-item" data-tab="tab-assessment">
+          <span class="nav-icon">🎯</span>
+          <span>Adaptive Practice</span>
+        </li>
+        <li class="nav-item" data-tab="tab-roadmap">
+          <span class="nav-icon">🗺️</span>
+          <span>5-Day Dynamic Roadmap</span>
+        </li>
+        <li class="nav-item" data-tab="tab-interview">
+          <span class="nav-icon">🎙️</span>
+          <span>AI Mock Interview</span>
+        </li>
+        <li class="nav-item" data-tab="tab-resume">
+          <span class="nav-icon">📄</span>
+          <span>Resume ATS Analyzer</span>
+        </li>
+        <li class="nav-item" data-tab="tab-profile">
+          <span class="nav-icon">👤</span>
+          <span>Student Profile</span>
+        </li>
+        <li class="nav-item" data-tab="tab-research">
+          <span class="nav-icon">🔬</span>
+          <span>Research & Viva Lab</span>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button id="seedDemoBtn" class="btn-seed">
+          <span>✨ Reset Benchmark Profile</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-wrapper">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="role-selector-wrap">
+          <label for="topbarRoleSelect">Target Job Role:</label>
+          <select id="topbarRoleSelect" class="role-dropdown"></select>
+        </div>
+
+        <div class="topbar-actions">
+          <span id="topbarUserName" style="font-size:13px;color:var(--text-secondary);margin-right:8px;"></span>
+          <button id="startDiagBtn" class="btn-primary">
+            <span>⚡ Take Diagnostic Assessment</span>
+          </button>
+          <button id="signOutBtn" style="padding:8px 14px;background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.25);color:#fda4af;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-sans);" onclick="handleSignOut()">Sign Out</button>
+        </div>
+      </header>
+
+
+      <!-- Dynamic Content Area -->
+      <main class="content-area">
+        
+        <!-- =========================================================================
+             TAB 1: PLACEMENT READINESS DASHBOARD
+             ========================================================================= -->
+        <section id="tab-dashboard" class="tab-view active">
+          
+          <!-- Hero Score Widget -->
+          <div class="readiness-hero">
+            <div class="score-dial-wrap">
+              <div id="readinessDialSvg"></div>
+              <div class="score-dial-val">
+                <h2 id="heroScoreVal">--%</h2>
+                <span>Readiness</span>
+              </div>
+            </div>
+
+            <div class="readiness-info">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+                <h3 id="heroRoleTitle">Job Role Title</h3>
+                <span id="heroTierBadge" class="badge badge-warning">Tier Status</span>
+              </div>
+              <p id="heroSummaryText">Diagnostic skill-gap engine analyzing readiness profile...</p>
+              
+              <div class="hero-meta-row">
+                <div class="hero-meta-item">
+                  <span class="meta-label">Diagnostic Confidence</span>
+                  <span id="heroConfidenceVal" class="meta-val">--%</span>
+                </div>
+                <div class="hero-meta-item">
+                  <span class="meta-label">Consistency Factor</span>
+                  <span id="heroConsistencyVal" class="meta-val">--%</span>
+                </div>
+                <div class="hero-meta-item">
+                  <span class="meta-label">Adaptive Core</span>
+                  <span class="meta-val" style="color: #34d399;">Active (ZPD Level)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Immediate Action Recommender Banner -->
+          <div class="action-banner">
+            <div class="action-content">
+              <div class="action-icon">💡</div>
+              <div class="action-text">
+                <h4 id="actionTopicTitle">Recommended Next Activity</h4>
+                <p id="actionStatement">Calculating optimal remediation...</p>
+              </div>
+            </div>
+            <button id="quickActionBtn" class="btn-primary">Start Targeted Practice →</button>
+          </div>
+
+          <!-- Main Grid (Radar + Category Bars) -->
+          <div class="grid-2">
+            <!-- Skill Category Breakdown -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>📈</span> Skill Category Breakdown</h3>
+                <span class="badge badge-primary">Role Weighted</span>
+              </div>
+              <div id="skillBarsContainer" class="skill-bar-list"></div>
+            </div>
+
+            <!-- Skill Radar Chart -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>🕸️</span> Multi-Domain Skill Radar</h3>
+                <span class="badge badge-primary">Target vs Actual</span>
+              </div>
+              <div style="height: 320px; position: relative;">
+                <canvas id="skillRadarCanvas"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Role Switch Comparison -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🔄</span> Career Role Transferability Preview</h3>
+              <span class="badge badge-primary">How Same Student Scores Across Roles</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+              Notice how the exact same performance scores result in distinct readiness indices depending on each job role's weight distribution.
+            </p>
+            <div style="height: 220px; position: relative;">
+              <canvas id="roleComparisonCanvas"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================================
+             TAB 2: EXPLAINABLE AI (XAI) DIAGNOSTIC CENTER
+             ========================================================================= -->
+        <section id="tab-xai" class="tab-view">
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title"><span>🧠</span> Explainable AI Diagnostic Executive Summary</h3>
+              <span class="badge badge-primary">Transparent Model Logic</span>
+            </div>
+            <p id="xaiExecSummary" style="font-size: 14px; line-height: 1.6; color: #cbd5e1;"></p>
+          </div>
+
+          <div class="grid-2">
+            <!-- Root Cause Bottlenecks -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>⚠️</span> Primary Readiness Bottlenecks</h3>
+                <span class="badge badge-danger">Action Required</span>
+              </div>
+              <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">
+                Identified based on low subtopic accuracy, response hesitation, and high importance in your target career track:
+              </p>
+              <div id="xaiBottlenecksList" class="bottleneck-list"></div>
+            </div>
+
+            <!-- 5-Step AI Reasoning Tree -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>🌲</span> 5-Step Diagnostic Reasoning Pipeline</h3>
+                <span class="badge badge-success">Decision Trace</span>
+              </div>
+              <div id="xaiReasoningTree" class="reasoning-tree"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================================
+             TAB 3: ADAPTIVE ASSESSMENT & PRACTICE ARENA
+             ========================================================================= -->
+        <section id="tab-assessment" class="tab-view">
+          <div class="quiz-container">
+            
+            <!-- Quiz Start Card -->
+            <div id="quizStartCard" class="card" style="text-align: center; padding: 48px 32px;">
+              <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
+              <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Adaptive Practice Arena</h3>
+              <p style="font-size: 14px; color: var(--text-secondary); max-width: 550px; margin: 0 auto 24px auto;">
+                Questions adapt in real time to your performance. When you struggle, the system lowers difficulty and provides remedial explanations; when you excel, it challenges you with higher-level questions.
+              </p>
+              <div style="display: flex; justify-content: center; gap: 14px;">
+                <button id="startPracticeBtn" class="btn-primary">Start Adaptive Drill (8 Questions)</button>
+              </div>
+            </div>
+
+            <!-- Quiz Active Card -->
+            <div id="quizActiveCard" style="display: none;">
+              <div class="quiz-header">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <span id="qSkillBadge" class="badge badge-primary">Skill</span>
+                  <span id="qSubtopicBadge" class="badge badge-primary">Subtopic</span>
+                  <span id="qDifficultyBadge" class="badge badge-warning">Difficulty</span>
+                </div>
+                <div id="quizTimerDisplay" class="quiz-timer">⏱ 00:00</div>
+              </div>
+
+              <div class="question-box">
+                <div id="qQuestionText" class="question-text">Question loading...</div>
+                <pre id="qCodeSnippet" class="code-block" style="display: none;"></pre>
+                
+                <div id="qOptionsList" class="options-list"></div>
+
+                <!-- Feedback Area -->
+                <div id="quizFeedbackCard" class="feedback-card"></div>
+
+                <!-- Quiz Actions -->
+                <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+                  <button id="submitAnswerBtn" class="btn-primary">Submit Answer</button>
+                  <button id="nextQuestionBtn" class="btn-primary" style="display: none; background: #10b981;">Next Question →</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quiz Complete Card -->
+            <div id="quizCompleteCard" class="card" style="display: none; text-align: center; padding: 40px 32px;">
+              <div style="font-size: 48px; margin-bottom: 12px;">🏆</div>
+              <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Assessment Completed!</h3>
+              <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 24px;">
+                Your skill-gap profile and placement readiness have been updated based on your latest responses.
+              </p>
+              
+              <div class="research-stat-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+                <div class="stat-box">
+                  <div class="stat-box-title">Questions Attempted</div>
+                  <div id="compTotalQuestions" class="stat-box-val">0</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-box-title">Correct Answers</div>
+                  <div id="compCorrectCount" class="stat-box-val" style="color: #34d399;">0</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-box-title">Accuracy</div>
+                  <div id="compAccuracy" class="stat-box-val">0%</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-box-title">New Readiness</div>
+                  <div id="compReadinessScore" class="stat-box-val" style="color: #818cf8;">0%</div>
+                </div>
+              </div>
+
+              <button class="btn-primary" onclick="switchTab('tab-dashboard')">Return to Dashboard</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================================
+             TAB 4: 5-DAY DYNAMIC PERSONALIZED ROADMAP
+             ========================================================================= -->
+        <section id="tab-roadmap" class="tab-view">
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title"><span>🗺️</span> Personalized Remediation Roadmap</h3>
+              <div>
+                <span id="roadmapRoleBadge" class="badge badge-primary">JAVA DEVELOPER</span>
+                <span id="roadmapCompPct" class="badge badge-success" style="margin-left: 8px;">0%</span>
+              </div>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+              Generated automatically by prioritizing topics with the highest <strong>(Role Weight × Skill Gap)</strong> impact.
+            </p>
+            <div class="bar-track">
+              <div id="roadmapProgressBar" class="bar-fill fill-high" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div id="roadmapTimeline" class="roadmap-timeline"></div>
+        </section>
+
+        <!-- =========================================================================
+             TAB 5: RESEARCH & VIVA DEFENCE LAB
+             ========================================================================= -->
+        <section id="tab-research" class="tab-view">
+          
+          <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--accent-emerald);">
+            <div class="card-header">
+              <h3 class="card-title"><span>🔬</span> Research Question & Empirical Evaluation</h3>
+              <span class="badge badge-success">Academic Research Core</span>
+            </div>
+            <p style="font-size: 14px; color: #cbd5e1; line-height: 1.6; margin-bottom: 12px;">
+              <em>“Can personalized skill-gap detection and adaptive question recommendation improve placement readiness more effectively than a fixed learning approach?”</em>
+            </p>
+            <div id="statResearchVerdict" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; color: #a7f3d0; line-height: 1.5;">
+              Simulating cohort study...
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="card" style="margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <label style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Cohort Size (N per group):</label>
+                <select id="simSampleSize" class="role-dropdown">
+                  <option value="40">40 Students</option>
+                  <option value="60" selected>60 Students</option>
+                  <option value="100">100 Students</option>
+                  <option value="250">250 Students</option>
+                </select>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <label style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Simulate Career Role:</label>
+                <select id="simTargetRole" class="role-dropdown">
+                  <option value="java_developer">Java Backend Developer</option>
+                  <option value="data_analyst">Data Analyst</option>
+                  <option value="fullstack_developer">Full-Stack Engineer</option>
+                  <option value="ml_engineer">Machine Learning Engineer</option>
+                </select>
+              </div>
+
+              <button id="runExperimentBtn" class="btn-primary">
+                <span>🔄 Run A/B Experiment Simulation</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Stats -->
+          <div class="research-stat-grid">
+            <div class="stat-box">
+              <div class="stat-box-title">Effect Size (Cohen's d)</div>
+              <div id="statCohensD" class="stat-box-val" style="color: #34d399;">d = --</div>
+              <div class="stat-box-sub">Large Effect (d > 0.80)</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-title">Statistical Significance</div>
+              <div id="statPVal" class="stat-box-val" style="color: #818cf8;">p < 0.001</div>
+              <div class="stat-box-sub">Highly Significant (p < 0.05)</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-title">Time Efficiency</div>
+              <div id="statTimeSaved" class="stat-box-val" style="color: #38bdf8;">--% Faster</div>
+              <div class="stat-box-sub">Hours Saved per Student</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-box-title">Weak Topic Resolution</div>
+              <div id="statGapRecovery" class="stat-box-val" style="color: #fbbf24;">--x Faster</div>
+              <div class="stat-box-sub">Mastery Recovery Velocity</div>
+            </div>
+          </div>
+
+          <!-- Statistical Comparison Table -->
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title"><span>📋</span> Empirical Experimental Results Table</h3>
+              <span class="badge badge-primary">Group A vs Group B</span>
+            </div>
+            <table class="stat-table">
+              <thead>
+                <tr>
+                  <th>Experimental Group</th>
+                  <th>Sample (N)</th>
+                  <th>Pre-Test Score</th>
+                  <th>Post-Test Score</th>
+                  <th>Improvement Gain</th>
+                  <th>Time Required</th>
+                  <th>Weak Topics Resolved</th>
+                </tr>
+              </thead>
+              <tbody id="researchTableBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Charts (Trajectory + Distribution) -->
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>📈</span> 14-Day Learning Trajectory</h3>
+              </div>
+              <div style="height: 280px; position: relative;">
+                <canvas id="researchTrajectoryCanvas"></canvas>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>📊</span> Pre vs Post Test Comparison</h3>
+              </div>
+              <div style="height: 280px; position: relative;">
+                <canvas id="researchDistributionCanvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================================
+             TAB 6: AI MOCK TECHNICAL INTERVIEW SIMULATOR
+             ========================================================================= -->
+        <section id="tab-interview" class="tab-view">
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title"><span>🎙️</span> AI Mock Technical Interview Simulator</h3>
+              <span class="badge badge-primary">Real-Time Natural Language & STAR Rubric</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+              Simulates technical interview rounds for your target placement role. Evaluates keyword coverage, technical depth, answer structure (STAR method), and readiness boost.
+            </p>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <label style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">Select Interview Role:</label>
+                <select id="interviewRoleSelect" class="role-dropdown"></select>
+              </div>
+
+              <button id="loadInterviewQuestionsBtn" class="btn-primary">
+                <span>⚡ Load Interview Round</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <!-- Question & Candidate Response Card -->
+            <div class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <span id="interviewQTypeBadge" class="badge badge-primary">Technical Core</span>
+                <span id="interviewQIndexBadge" style="font-size: 12px; color: var(--accent-cyan); font-weight: 600;">Question 1 of 3</span>
+              </div>
+
+              <h3 id="interviewQText" style="font-size: 16px; font-weight: 700; color: #f8fafc; line-height: 1.5; margin-bottom: 16px;">
+                Select a role and click 'Load Interview Round' to begin your AI mock technical interview session.
+              </h3>
+
+              <!-- Simulated Voice Recording bar -->
+              <div class="voice-bar-container">
+                <button id="toggleVoiceBtn" class="btn-secondary" style="font-size: 12px; padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+                  <span id="micIcon">🎤</span> <span id="micLabel">Simulate Voice Dictation</span>
+                </button>
+                <div id="voicePulse" class="voice-pulse" style="display: none;">
+                  <span class="pulse-wave"></span>
+                  <span class="pulse-wave"></span>
+                  <span class="pulse-wave"></span>
+                  <span style="font-size: 11px; color: #34d399; margin-left: 8px;">Listening & Transcribing Answer...</span>
+                </div>
+              </div>
+
+              <div style="margin-top: 14px;">
+                <label style="font-size: 12px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 6px;">
+                  Candidate Response (Written or Spoken):
+                </label>
+                <textarea id="interviewAnswerInput" class="interview-textarea" rows="6" placeholder="Type your detailed technical explanation or click Simulate Voice Dictation..."></textarea>
+              </div>
+
+              <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 12px; color: var(--text-muted);">
+                  <span id="answerWordCount">0</span> words typed
+                </div>
+                <button id="evaluateInterviewBtn" class="btn-primary">
+                  <span>🧠 Evaluate with AI Engine</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Real-Time AI Evaluation Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>📊</span> AI Evaluation Feedback</h3>
+                <span id="interviewHireStatusBadge" class="badge badge-warning">Awaiting Response</span>
+              </div>
+
+              <div id="interviewEmptyState" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                <div style="font-size: 36px; margin-bottom: 12px;">💡</div>
+                <p>Submit your response on the left to view instant AI feedback on technical depth, key concepts, and hiring decision.</p>
+              </div>
+
+              <div id="interviewResultsWrapper" style="display: none;">
+                <!-- Score Header -->
+                <div style="display: flex; align-items: center; gap: 20px; background: rgba(30, 41, 59, 0.7); padding: 16px; border-radius: var(--radius-md); margin-bottom: 18px;">
+                  <div style="text-align: center;">
+                    <div id="interviewOverallScore" style="font-size: 32px; font-weight: 800; color: var(--accent-cyan);">0.0%</div>
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Technical Score</div>
+                  </div>
+
+                  <div style="border-left: 1px solid var(--border-color); padding-left: 16px; flex: 1;">
+                    <div style="font-size: 13px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px;" id="interviewStatusText">
+                      Evaluating response...
+                    </div>
+                    <div style="font-size: 12px; color: var(--accent-emerald);" id="interviewBoostText">
+                      Readiness Boost: +0%
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Keywords Pill Cloud -->
+                <div style="margin-bottom: 16px;">
+                  <h4 style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">
+                    Technical Keyword Coverage
+                  </h4>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="interviewKeywordsCloud"></div>
+                </div>
+
+                <!-- Missing Concepts -->
+                <div style="margin-bottom: 16px;">
+                  <h4 style="font-size: 12px; text-transform: uppercase; color: #fb7185; font-weight: 700; margin-bottom: 8px;">
+                    Missing Key Concepts
+                  </h4>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="interviewMissingCloud"></div>
+                </div>
+
+                <!-- Depth & Structure Feedback -->
+                <div style="margin-bottom: 16px; background: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-cyan);">
+                  <div style="font-size: 12px; font-weight: 700; color: #38bdf8; margin-bottom: 4px;">Depth & Structure Rubric</div>
+                  <p id="interviewDepthFeedback" style="font-size: 13px; color: #cbd5e1; margin: 0; line-height: 1.5;"></p>
+                </div>
+
+                <!-- Model Ideal Answer Points -->
+                <div>
+                  <h4 style="font-size: 12px; text-transform: uppercase; color: #34d399; font-weight: 700; margin-bottom: 8px;">
+                    Ideal Model Solution Key Points
+                  </h4>
+                  <ul id="interviewIdealPointsList" style="padding-left: 18px; font-size: 12px; color: #e2e8f0; line-height: 1.5;"></ul>
+                </div>
+
+                <!-- Next Question Button -->
+                <div style="margin-top: 18px; text-align: right;">
+                  <button id="nextInterviewQBtn" class="btn-primary">Next Interview Question →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================================
+             TAB 7: RESUME SKILL-GAP & ATS MATCH ANALYZER
+             ========================================================================= -->
+        <section id="tab-resume" class="tab-view">
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <h3 class="card-title"><span>📄</span> Resume Skill-Gap & ATS Match Analyzer</h3>
+              <span class="badge badge-primary">Automated Skill Extraction & ATS Scoring</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+              Parses technical resume content against target company job profile criteria. Detects skill ontology keywords, calculates ATS match score, and identifies missing critical prerequisites.
+            </p>
+
+            <!-- Target Role & Quick Samples Bar -->
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <label style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">Target Role Criteria:</label>
+                <select id="resumeRoleSelect" class="role-dropdown"></select>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Load Sample Resume:</span>
+                <button class="btn-secondary sample-resume-btn" data-sample="java" style="font-size: 11px; padding: 4px 10px;">Java Backend</button>
+                <button class="btn-secondary sample-resume-btn" data-sample="data" style="font-size: 11px; padding: 4px 10px;">Data Analyst</button>
+                <button class="btn-secondary sample-resume-btn" data-sample="minimal" style="font-size: 11px; padding: 4px 10px;">Minimal Candidate</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <!-- Resume Input Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>📝</span> Resume Content Input</h3>
+                <span class="badge badge-primary">Text Parser</span>
+              </div>
+              <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+                Paste your full resume text or engineering summary below for real-time skill extraction:
+              </p>
+              
+              <textarea id="resumeTextInput" class="interview-textarea" rows="12" placeholder="Paste your resume text here... (e.g. Work Experience, Skills, Technical Projects, Education)"></textarea>
+
+              <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <span id="resumeWordCount" style="font-size: 12px; color: var(--text-muted);">0 words</span>
+                <button id="analyzeResumeBtn" class="btn-primary">
+                  <span>🔍 Run ATS & Skill-Gap Analysis</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Resume Analysis Results Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>📊</span> ATS Compatibility & Match Results</h3>
+                <span id="resumeRoleMatchBadge" class="badge badge-warning">Awaiting Scan</span>
+              </div>
+
+              <div id="resumeEmptyState" style="text-align: center; padding: 50px 16px; color: var(--text-muted);">
+                <div style="font-size: 36px; margin-bottom: 12px;">📄</div>
+                <p>Paste resume text or click a 'Load Sample Resume' button to analyze ATS compatibility and skill gaps.</p>
+              </div>
+
+              <div id="resumeResultsWrapper" style="display: none;">
+                <!-- Dual Gauge Stats -->
+                <div class="research-stat-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 18px;">
+                  <div class="stat-box">
+                    <div class="stat-box-title">ATS Readiness Score</div>
+                    <div id="statAtsScore" class="stat-box-val" style="color: #38bdf8;">0%</div>
+                    <div class="stat-box-sub">Overall Keyword & Structure Density</div>
+                  </div>
+                  <div class="stat-box">
+                    <div class="stat-box-title">Target Role Match</div>
+                    <div id="statRoleMatchPct" class="stat-box-val" style="color: #34d399;">0%</div>
+                    <div class="stat-box-sub">Critical Subtopic Alignment</div>
+                  </div>
+                </div>
+
+                <!-- Detected Skills Breakdown -->
+                <div style="margin-bottom: 18px;">
+                  <h4 style="font-size: 12px; text-transform: uppercase; color: var(--accent-cyan); font-weight: 700; margin-bottom: 8px;">
+                    Extracted Skills Ontology Breakdown
+                  </h4>
+                  <div id="resumeSkillsBreakdownContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                </div>
+
+                <!-- Missing Critical Requirements -->
+                <div style="margin-bottom: 18px;">
+                  <h4 style="font-size: 12px; text-transform: uppercase; color: #fb7185; font-weight: 700; margin-bottom: 8px;">
+                    Missing Critical Role Requirements
+                  </h4>
+                  <div id="resumeMissingCriticalList" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                </div>
+
+                <!-- Actionable Recommendations -->
+                <div>
+                  <h4 style="font-size: 12px; text-transform: uppercase; color: #fbbf24; font-weight: 700; margin-bottom: 8px;">
+                    ATS Optimization Recommendations
+                  </h4>
+                  <ul id="resumeRecommendationsList" style="padding-left: 18px; font-size: 12px; color: #e2e8f0; line-height: 1.5;"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================================
+             TAB 8: STUDENT PROFILE & SKILL PROFICIENCY MATRIX
+             ========================================================================= -->
+        <section id="tab-profile" class="tab-view">
+          <!-- Candidate Overview Header Card -->
+          <div class="card" style="margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: #fff; box-shadow: var(--shadow-glow);">
+                  AR
+                </div>
+                <div>
+                  <h2 style="font-size: 20px; font-weight: 800; color: #f8fafc; margin-bottom: 4px;">Alex Rivera</h2>
+                  <div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary);">
+                    <span>🎓 Computer Science Senior</span>
+                    <span>•</span>
+                    <span>CGPA: 3.82 / 4.0</span>
+                    <span>•</span>
+                    <span id="profileUserRoleBadge" class="badge badge-primary">Java Backend Developer</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px;">
+                <button id="profileSeedBtn" class="btn-secondary">Reset Benchmark Scores</button>
+                <button id="profileSaveBtn" class="btn-primary">Save Profile Changes</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <!-- Profile Settings Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>⚙️</span> Candidate Placement Settings</h3>
+                <span class="badge badge-primary">Target Config</span>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                  <label style="font-size: 12px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 6px;">
+                    Full Name:
+                  </label>
+                  <input type="text" id="profileNameInput" class="interview-textarea" style="height: 38px; resize: none;" value="Alex Rivera">
+                </div>
+
+                <div>
+                  <label style="font-size: 12px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 6px;">
+                    Target Placement Career Track:
+                  </label>
+                  <select id="profileRoleSelect" class="role-dropdown" style="width: 100%;"></select>
+                </div>
+
+                <div>
+                  <label style="font-size: 12px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 6px;">
+                    Target Company Placement Tier:
+                  </label>
+                  <select id="profileTierSelect" class="role-dropdown" style="width: 100%;">
+                    <option value="Tier-1 Product (MAANG / Top Tech)" selected>Tier-1 Product (MAANG / High-Scale Unicorn)</option>
+                    <option value="Tier-2 Core Engineering">Tier-2 Core Engineering & Product Enterprise</option>
+                    <option value="FinTech / Quantitative Systems">FinTech & Quantitative High-Frequency Systems</option>
+                    <option value="Global Tech Services">Global Tech Services & Consultancies</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive Skill Category Proficiency Matrix -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><span>📊</span> Skill Category Proficiency Matrix</h3>
+                <span class="badge badge-success">Live Adjuster</span>
+              </div>
+              <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">
+                Adjust proficiency sliders to simulate skill upgrades and instantly recalculate placement readiness:
+              </p>
+
+              <div id="profileSkillSlidersContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Study Resource Modal -->
+  <div id="resourceModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalTitle" style="font-size: 18px; font-weight: 700; color: #fff;">Study Notes</h3>
+          <span id="modalSkillTopic" style="font-size: 12px; color: var(--accent-cyan); font-weight: 600;"></span>
+        </div>
+        <button id="closeModalBtn" class="close-btn">✕</button>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h4 style="font-size: 13px; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 8px;">Key Concepts & Rules</h4>
+        <ul id="modalConceptsList" style="padding-left: 20px; font-size: 13px; color: #e2e8f0; line-height: 1.6;"></ul>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h4 style="font-size: 13px; text-transform: uppercase; color: #fb7185; font-weight: 700; margin-bottom: 8px;">Common Pitfalls to Avoid</h4>
+        <ul id="modalPitfallsList" style="padding-left: 20px; font-size: 13px; color: #fecdd3; line-height: 1.6;"></ul>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h4 style="font-size: 13px; text-transform: uppercase; color: #38bdf8; font-weight: 700; margin-bottom: 8px;">Implementation Example</h4>
+        <pre id="modalCodeExample" class="code-block"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/charts.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

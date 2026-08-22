@@ -7,9 +7,25 @@
       "config": {
         "maxLambdaSize": "50mb"
       }
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/static/css/(.*)",
+      "dest": "/frontend/css/$1"
+    },
+    {
+      "src": "/static/js/(.*)",
+      "dest": "/frontend/js/$1"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/frontend/$1"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/index.py"
@@ -29,14 +45,6 @@
     {
       "src": "/auth",
       "dest": "/api/index.py"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "/frontend/$1"
-    },
-    {
-      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "dest": "/frontend/$1"
     },
     {
       "src": "/(.*)",

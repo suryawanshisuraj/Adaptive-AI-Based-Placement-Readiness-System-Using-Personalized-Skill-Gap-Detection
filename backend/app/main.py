@@ -42,7 +42,8 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
 
-# Mount static assets (css/js/images) only if the directory exists
+# Mount static assets — serves /static/css/style.css, /static/js/*.js, etc.
+# This works locally; on Vercel, vercel.json routes handle it
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 

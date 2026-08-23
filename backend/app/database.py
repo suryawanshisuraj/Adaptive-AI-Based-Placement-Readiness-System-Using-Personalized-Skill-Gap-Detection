@@ -16,7 +16,21 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
 
 _supabase_client: Optional[Client] = None
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "placement_readiness.db")
+
+# On serverless platforms (like Vercel Lambda), the app bundle is read-only.
+# Copy database to /tmp if running in read-only environment.
+_LOCAL_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "placement_readiness.db")
+if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME") or not os.access(os.path.dirname(os.path.abspath(__file__)), os.W_OK):
+    import shutil
+    _TMP_DB = os.path.join("/tmp", "placement_readiness.db")
+    if not os.path.exists(_TMP_DB) and os.path.exists(_LOCAL_DB):
+        try:
+            shutil.copy2(_LOCAL_DB, _TMP_DB)
+        except Exception:
+            pass
+    DB_PATH = _TMP_DB
+else:
+    DB_PATH = _LOCAL_DB
 
 
 def get_sqlite_connection() -> sqlite3.Connection:
@@ -24,6 +38,7 @@ def get_sqlite_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 
 def get_supabase() -> Optional[Client]:

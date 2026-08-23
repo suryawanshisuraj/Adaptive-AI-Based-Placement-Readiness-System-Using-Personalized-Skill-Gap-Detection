@@ -19,7 +19,7 @@
     
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
-      <div class="sidebar-header">
+      <div class="sidebar-header" style="display: flex; align-items: center; justify-content: space-between;">
         <div class="logo-wrap">
           <div class="logo-icon">🧠</div>
           <div class="logo-text">
@@ -27,6 +27,7 @@
             <p>Placement Readiness</p>
           </div>
         </div>
+        <button id="mobileSidebarCloseBtn" class="sidebar-close-btn" aria-label="Close Navigation">✕</button>
       </div>
 
       <div class="sidebar-user" id="sidebarUserCard" title="Click to view & edit your account profile" style="cursor: pointer;">
@@ -147,11 +148,13 @@
         </button>
       </div>
     </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Main Workspace -->
     <div class="main-wrapper">
       <!-- Topbar Header -->
       <header class="topbar">
+        <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Open Navigation">☰</button>
         <div class="role-selector-wrap">
           <label for="topbarRoleSelect">Target Job Role:</label>
           <select id="topbarRoleSelect" class="role-dropdown"></select>

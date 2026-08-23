@@ -1592,74 +1592,300 @@ body {
   gap: 10px;
 }
 
+/* =========================================================================
+   MOBILE RESPONSIVE & DRAWER SYSTEM
+   ========================================================================= */
+
+/* Mobile Backdrop Overlay */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 1040;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.sidebar-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Mobile Hamburger Toggle (hidden on desktop) */
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 18px;
+  color: var(--text-primary);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+.mobile-menu-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--primary);
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-left: auto;
+}
+
 @media (max-width: 900px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .aptitude-arena-grid {
     grid-template-columns: 1fr;
+  }
+  .research-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
+  /* Mobile Menu & Drawer Activation */
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+  .sidebar-close-btn {
+    display: block;
+  }
+
   .app-container {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Transform Sidebar into Slide-out Drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    z-index: 1050;
+    background: #ffffff;
+    border-right: 1px solid var(--border-color);
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.2);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
     flex-direction: column;
     overflow-y: auto;
   }
-  .sidebar {
-    width: 100%;
-    height: auto;
-    max-height: 180px;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
   }
-  .nav-list {
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 6px 8px;
-  }
-  .nav-item {
-    flex-shrink: 0;
-    padding: 6px 10px;
-  }
+
   .sidebar-user, .sidebar-footer {
-    display: none;
+    display: block;
   }
+
+  .main-wrapper {
+    width: 100vw;
+    height: 100vh;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
   .topbar {
     height: auto;
-    flex-direction: column;
-    padding: 12px;
-    gap: 10px;
-    align-items: stretch;
+    min-height: 56px;
+    padding: 10px 14px;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    background: #ffffff;
   }
+
+  .role-selector-wrap {
+    flex: 1;
+    min-width: 160px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .role-selector-wrap label {
+    display: none;
+  }
+
+  .role-dropdown {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
   .topbar-actions {
-    justify-content: space-between;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
   }
+
+  .topbar-actions #topbarUserName {
+    display: none;
+  }
+
+  .topbar-actions #startDiagBtn span {
+    font-size: 11.5px;
+  }
+
+  .topbar-actions #startDiagBtn {
+    padding: 6px 10px;
+  }
+
+  .topbar-actions #signOutBtn {
+    padding: 6px 8px;
+    font-size: 11.5px;
+  }
+
+  /* Content Area */
   .content-area {
-    padding: 14px;
-    overflow-y: visible;
+    padding: 12px;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
+
+  /* Collapse all grids to 1 column on phones */
+  .grid-2, .grid-3, .grid-4, .research-stat-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
   .readiness-hero {
     flex-direction: column;
     padding: 16px;
     gap: 14px;
     text-align: center;
   }
+
   .hero-meta-row {
     flex-wrap: wrap;
     justify-content: center;
+    gap: 8px;
   }
+
   .action-banner {
     flex-direction: column;
     text-align: center;
     gap: 10px;
   }
+
   .action-content {
     flex-direction: column;
+    text-align: center;
   }
-  .research-stat-grid {
-    grid-template-columns: 1fr;
-  }
+
   .stat-table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Modals */
+  .modal-content, .quiz-modal-content {
+    width: 95vw;
+    max-width: 95vw;
+    max-height: 92vh;
+    padding: 16px;
+    margin: auto;
+    border-radius: var(--radius-md);
+  }
+
+  /* Aptitude Hub on Mobile */
+  .aptitude-header-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .apt-categories-strip {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .apt-cat-pill {
+    flex-shrink: 0;
+  }
+
+  .apt-subtopics-row {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .apt-subtopic-pill {
+    flex-shrink: 0;
+  }
+
+  .apt-options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .apt-footer-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .apt-footer-actions button {
+    width: 100%;
+  }
+
+  /* Interview Studio on Mobile */
+  .interview-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .interview-controls-row button,
+  .interview-controls-row select {
+    width: 100%;
+  }
+
+  /* Profile page buttons */
+  #clearDataBtn, #profileSeedBtn, #profileSaveBtn {
+    width: 100%;
+    margin-bottom: 6px;
   }
 }
+
+@media (max-width: 480px) {
+  .readiness-info h3 {
+    font-size: 16px;
+  }
+  .card {
+    padding: 14px;
+  }
+  .card-title {
+    font-size: 13px;
+  }
+}
+

@@ -294,7 +294,41 @@ function setupEventListeners() {
       showToast("All test logs cleared! System is now running 100% on your real profile data.");
     });
   }
+
+  // Mobile Drawer Toggle Listeners
+  initMobileDrawer();
 }
+
+function initMobileDrawer() {
+  const menuBtn = document.getElementById("mobileMenuBtn");
+  const closeBtn = document.getElementById("mobileSidebarCloseBtn");
+  const overlay = document.getElementById("sidebarOverlay");
+  const sidebar = document.querySelector(".sidebar");
+
+  function openSidebar() {
+    if (sidebar) sidebar.classList.add("mobile-open");
+    if (overlay) overlay.classList.add("active");
+  }
+
+  function closeSidebar() {
+    if (sidebar) sidebar.classList.remove("mobile-open");
+    if (overlay) overlay.classList.remove("active");
+  }
+
+  if (menuBtn) menuBtn.addEventListener("click", openSidebar);
+  if (closeBtn) closeBtn.addEventListener("click", closeSidebar);
+  if (overlay) overlay.addEventListener("click", closeSidebar);
+
+  // Close mobile sidebar on any nav click
+  document.querySelectorAll(".nav-item:not(.nav-accordion-toggle), .nav-subitem, #sidebarUserCard").forEach(item => {
+    item.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        closeSidebar();
+      }
+    });
+  });
+}
+
 
 async function loadInitialData() {
   try {

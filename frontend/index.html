@@ -50,6 +50,10 @@
           <span class="nav-icon">🎯</span>
           <span>Adaptive Practice</span>
         </li>
+        <li class="nav-item" data-tab="tab-aptitude">
+          <span class="nav-icon">🧮</span>
+          <span>Aptitude & Reasoning</span>
+        </li>
         <li class="nav-item" data-tab="tab-roadmap">
           <span class="nav-icon">🗺️</span>
           <span>5-Day Dynamic Roadmap</span>
@@ -148,7 +152,10 @@
                 <p id="actionStatement">Calculating optimal remediation...</p>
               </div>
             </div>
-            <button id="quickActionBtn" class="btn-primary">Start Targeted Practice →</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button id="quickActionBtn" class="btn-primary">Start Targeted Practice →</button>
+              <button id="quickAptitudeBtn" class="btn-secondary" style="background: #ffffff; color: var(--primary); border-color: rgba(79, 70, 229, 0.3);" onclick="switchTab('tab-aptitude')">🧮 Aptitude & Reasoning</button>
+            </div>
           </div>
 
           <!-- Main Grid (Radar + Category Bars) -->
@@ -299,6 +306,178 @@
               </div>
 
               <button class="btn-primary" onclick="switchTab('tab-dashboard')">Return to Dashboard</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========================================================================
+             TAB: APTITUDE & REASONING HUB
+             ========================================================================= -->
+        <section id="tab-aptitude" class="tab-view">
+          
+          <!-- Header Banner -->
+          <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(2, 132, 199, 0.05) 100%); border-left: 4px solid var(--primary);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                  <span style="font-size: 24px;">🧮</span>
+                  <h3 style="font-size: 19px; font-weight: 800; color: var(--text-primary);">Placement Aptitude & Reasoning Mastery Arena</h3>
+                  <span class="badge badge-primary">Round-1 Filter Core</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-secondary); max-width: 680px; margin: 0;">
+                  Prepare for Tier-1 technical & service-based placement screening tests with comprehensive modules across Quantitative, Logical, Verbal, DI, and Behavioral competencies.
+                </p>
+              </div>
+
+              <div style="display: flex; gap: 10px;">
+                <button id="startAptitudeMockBtn" class="btn-primary" style="display: flex; align-items: center; gap: 6px;">
+                  <span>⚡ Quick 10-Q Timed Mock</span>
+                </button>
+                <button id="randomAptitudeDrillBtn" class="btn-secondary" style="display: flex; align-items: center; gap: 6px;">
+                  <span>🎲 Shuffle Question</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Layout: Categories List (Left) + Interactive Question Arena (Right) -->
+          <div class="aptitude-arena-grid">
+            
+            <!-- Category Navigation (Matches User's Image Categories) -->
+            <div class="aptitude-sidebar-card">
+              <div style="padding: 14px 16px; border-bottom: 1px solid var(--border-color); background: var(--bg-subtle); display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px;">Aptitude Categories</span>
+                <span class="badge badge-primary" id="aptCategoryCountBadge">10 Modules</span>
+              </div>
+
+              <div class="aptitude-category-list" id="aptitudeCategoryList">
+                <button class="apt-cat-btn active" data-category="arithmetic">
+                  <span class="apt-cat-icon">∫</span>
+                  <span class="apt-cat-name">Arithmetic Aptitude</span>
+                  <span class="apt-cat-count">8 Topics</span>
+                </button>
+                <button class="apt-cat-btn" data-category="di">
+                  <span class="apt-cat-icon">📊</span>
+                  <span class="apt-cat-name">Data Interpretation</span>
+                  <span class="apt-cat-count">5 Types</span>
+                </button>
+                <button class="apt-cat-btn" data-category="verbal">
+                  <span class="apt-cat-icon">📝</span>
+                  <span class="apt-cat-name">Verbal Ability</span>
+                  <span class="apt-cat-count">6 Topics</span>
+                </button>
+                <button class="apt-cat-btn" data-category="logical">
+                  <span class="apt-cat-icon">🔄</span>
+                  <span class="apt-cat-name">Logical Reasoning</span>
+                  <span class="apt-cat-count">7 Topics</span>
+                </button>
+                <button class="apt-cat-btn" data-category="verbal_reasoning">
+                  <span class="apt-cat-icon" style="font-family: var(--font-mono); font-weight: 800;">ABC</span>
+                  <span class="apt-cat-name">Verbal Reasoning</span>
+                  <span class="apt-cat-count">5 Topics</span>
+                </button>
+                <button class="apt-cat-btn" data-category="nonverbal">
+                  <span class="apt-cat-icon">▦</span>
+                  <span class="apt-cat-name">Nonverbal Reasoning</span>
+                  <span class="apt-cat-count">5 Topics</span>
+                </button>
+                <div style="height: 1px; background: var(--border-color); margin: 6px 12px;"></div>
+                <button class="apt-cat-btn" data-category="online_tests">
+                  <span class="apt-cat-icon">⏱️</span>
+                  <span class="apt-cat-name">Online Mock Tests</span>
+                  <span class="apt-cat-count">Timed</span>
+                </button>
+                <button class="apt-cat-btn" data-category="current_affairs">
+                  <span class="apt-cat-icon">🌍</span>
+                  <span class="apt-cat-name">Current Affairs</span>
+                  <span class="apt-cat-count">Tech & AI</span>
+                </button>
+                <button class="apt-cat-btn" data-category="gk">
+                  <span class="apt-cat-icon">💡</span>
+                  <span class="apt-cat-name">General Knowledge</span>
+                  <span class="apt-cat-count">Core CS</span>
+                </button>
+                <div style="height: 1px; background: var(--border-color); margin: 6px 12px;"></div>
+                <button class="apt-cat-btn" data-category="hr">
+                  <span class="apt-cat-icon">👤</span>
+                  <span class="apt-cat-name">HR Interview</span>
+                  <span class="apt-cat-count">STAR Prep</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Active Question & Practice Solver -->
+            <div class="aptitude-content-card">
+              
+              <!-- Topic Sub-Pills Bar -->
+              <div class="aptitude-subtopics-bar" id="aptSubtopicsBar"></div>
+
+              <!-- Question Container Box -->
+              <div class="apt-question-container" id="aptQuestionBox">
+                <div class="apt-q-header">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="aptCurrentCatBadge" class="badge badge-primary">Arithmetic Aptitude</span>
+                    <span id="aptCurrentSubtopicBadge" class="badge badge-primary" style="background: #eef2ff; color: var(--primary);">Percentages & Profit Loss</span>
+                    <span id="aptDifficultyBadge" class="badge badge-warning">Medium</span>
+                  </div>
+                  <div class="apt-q-timer" id="aptTimerDisplay">⏱ 00:00</div>
+                </div>
+
+                <div class="apt-q-text" id="aptQuestionPrompt">
+                  Question text will load here...
+                </div>
+
+                <div class="apt-formula-box" id="aptFormulaBox" style="display: none;">
+                  <span style="font-size: 11px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase;">Formula / Quick Logic:</span>
+                  <div id="aptFormulaContent" style="font-family: var(--font-mono); font-size: 12.5px; color: var(--text-primary); margin-top: 4px;"></div>
+                </div>
+
+                <div class="apt-options-grid" id="aptOptionsGrid"></div>
+
+                <!-- Explanation / Solution Details -->
+                <div class="apt-solution-box" id="aptSolutionBox" style="display: none;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12.5px; font-weight: 700; color: var(--accent-emerald);" id="aptResultStatus">✅ Correct!</span>
+                    <span style="font-size: 11px; color: var(--text-muted);">Step-by-Step Breakdown</span>
+                  </div>
+                  <p id="aptExplanationText" style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0;"></p>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="apt-action-bar">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <button id="aptHintBtn" class="btn-secondary" style="font-size: 12px; padding: 7px 14px;">
+                      <span>💡 Show Formula/Hint</span>
+                    </button>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <button id="aptPrevBtn" class="btn-secondary" style="font-size: 12px; padding: 7px 14px;">← Previous</button>
+                    <button id="aptSubmitBtn" class="btn-primary" style="font-size: 12.5px; padding: 7px 20px;">Submit Answer</button>
+                    <button id="aptNextBtn" class="btn-primary" style="font-size: 12.5px; padding: 7px 20px; display: none; background: #059669;">Next Question →</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Aptitude Session Stats -->
+              <div class="research-stat-grid" style="grid-template-columns: repeat(4, 1fr); margin-top: 20px;">
+                <div class="stat-box" style="padding: 12px 14px;">
+                  <div class="stat-box-title" style="font-size: 11px;">Questions Practiced</div>
+                  <div id="aptStatAttempted" class="stat-box-val" style="font-size: 20px;">0</div>
+                </div>
+                <div class="stat-box" style="padding: 12px 14px;">
+                  <div class="stat-box-title" style="font-size: 11px;">Correct Accuracy</div>
+                  <div id="aptStatAccuracy" class="stat-box-val" style="font-size: 20px; color: var(--accent-emerald);">0%</div>
+                </div>
+                <div class="stat-box" style="padding: 12px 14px;">
+                  <div class="stat-box-title" style="font-size: 11px;">Avg Speed</div>
+                  <div id="aptStatAvgTime" class="stat-box-val" style="font-size: 20px; color: var(--accent-cyan);">0s</div>
+                </div>
+                <div class="stat-box" style="padding: 12px 14px;">
+                  <div class="stat-box-title" style="font-size: 11px;">Readiness Impact</div>
+                  <div id="aptStatReadiness" class="stat-box-val" style="font-size: 20px; color: var(--primary);">+0.0%</div>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>

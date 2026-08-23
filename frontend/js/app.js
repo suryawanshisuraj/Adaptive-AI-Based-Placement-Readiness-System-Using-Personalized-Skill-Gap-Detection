@@ -301,6 +301,7 @@ function switchTab(tabId) {
   if (tabId === "tab-interview") initInterviewView();
   if (tabId === "tab-resume") initResumeView();
   if (tabId === "tab-profile") initProfileView();
+  if (tabId === "tab-aptitude") initAptitudeView();
 }
 
 async function refreshAllViews() {
@@ -1163,4 +1164,724 @@ async function handleSignOut() {
   localStorage.removeItem("placement_user_name");
   localStorage.removeItem("placement_user_email");
   window.location.href = "/auth";
+}
+
+// =========================================================================
+// APTITUDE & REASONING HUB MODULE
+// =========================================================================
+
+const APTITUDE_DATA = {
+  categories: {
+    arithmetic: {
+      name: "Arithmetic Aptitude",
+      icon: "∫",
+      subtopics: ["All", "Percentages & Profit Loss", "Simple & Compound Interest", "Ratio & Proportion", "Time & Work", "Speed Distance Time", "Probability & Combinatorics"],
+      questions: [
+        {
+          id: "apt_arith_1",
+          subtopic: "Percentages & Profit Loss",
+          diff: "Medium",
+          prompt: "A retailer marks an item 30% above the cost price and then offers a discount of 15% on the marked price. What is the net profit percentage earned by the retailer?",
+          formula: "Net Profit % = [Marked Factor × (1 - Discount)] - 1\n= [1.30 × 0.85] - 1 = 1.105 - 1 = +10.5%",
+          options: ["10.5%", "12.0%", "15.0%", "8.5%"],
+          correct: 0,
+          explanation: "Let CP = 100. Marked Price MP = 100 × 1.30 = 130. Selling Price SP = 130 - (15% of 130) = 130 - 19.5 = 110.5. Net Profit = 110.5 - 100 = 10.5%."
+        },
+        {
+          id: "apt_arith_2",
+          subtopic: "Simple & Compound Interest",
+          diff: "Hard",
+          prompt: "The difference between CI and SI compounded annually on a certain sum for 2 years at 12% per annum is Rs. 144. Find the principal sum.",
+          formula: "CI - SI (for 2 yrs) = P × (R / 100)²\nP = Difference / (R / 100)² = 144 / (0.12)²",
+          options: ["Rs. 10,000", "Rs. 12,000", "Rs. 9,500", "Rs. 15,000"],
+          correct: 0,
+          explanation: "Difference = P × (R/100)² => 144 = P × (12/100)² => 144 = P × (144 / 10,000) => P = Rs. 10,000."
+        },
+        {
+          id: "apt_arith_3",
+          subtopic: "Time & Work",
+          diff: "Medium",
+          prompt: "A can complete a software module in 12 days, and B can complete it in 18 days. They work together for 4 days, after which A leaves. How many days will B alone take to finish the remaining work?",
+          formula: "Work done in 4 days = 4 × (1/12 + 1/18)\nRemaining Work = 1 - Work Done\nTime for B = Remaining / (1/18)",
+          options: ["8 days", "6 days", "10 days", "7.5 days"],
+          correct: 0,
+          explanation: "Combined rate = 1/12 + 1/18 = 5/36 work/day. In 4 days, work done = 4 × 5/36 = 20/36 = 5/9. Remaining work = 1 - 5/9 = 4/9. Time taken by B alone = (4/9) / (1/18) = (4/9) × 18 = 8 days."
+        },
+        {
+          id: "apt_arith_4",
+          subtopic: "Speed Distance Time",
+          diff: "Medium",
+          prompt: "Two trains 140m and 160m long run on parallel tracks in opposite directions at 60 km/h and 48 km/h. In how many seconds will they completely cross each other?",
+          formula: "Relative Speed (Opposite) = S1 + S2 = 60 + 48 = 108 km/h\n108 × (5/18) = 30 m/s\nTime = Total Distance / Relative Speed = (140 + 160) / 30",
+          options: ["10 seconds", "12 seconds", "15 seconds", "8 seconds"],
+          correct: 0,
+          explanation: "Total Distance = 140 + 160 = 300m. Relative speed = 60 + 48 = 108 km/h = 108 × (5/18) = 30 m/s. Time = 300 / 30 = 10 seconds."
+        },
+        {
+          id: "apt_arith_5",
+          subtopic: "Ratio & Proportion",
+          diff: "Easy",
+          prompt: "The ratio of salaries of two software engineers X and Y is 7:9. If each gets a salary increment of Rs. 4,000, the new ratio becomes 4:5. What is the original salary of X?",
+          formula: "(7x + 4000) / (9x + 4000) = 4 / 5\n5(7x + 4000) = 4(9x + 4000) => 35x + 20000 = 36x + 16000 => x = 4000",
+          options: ["Rs. 28,000", "Rs. 36,000", "Rs. 32,000", "Rs. 24,000"],
+          correct: 0,
+          explanation: "Let salaries be 7x and 9x. (7x + 4000)/(9x + 4000) = 4/5 => 35x + 20000 = 36x + 16000 => x = 4000. X's salary = 7 × 4000 = Rs. 28,000."
+        },
+        {
+          id: "apt_arith_6",
+          subtopic: "Probability & Combinatorics",
+          diff: "Medium",
+          prompt: "A box contains 5 red, 4 blue, and 3 green marbles. If 2 marbles are drawn at random without replacement, what is the probability that both are red?",
+          formula: "P(Both Red) = (5C2) / (12C2)\n5C2 = 10, 12C2 = 66 => 10 / 66 = 5 / 33",
+          options: ["5/33", "1/6", "5/36", "10/33"],
+          correct: 0,
+          explanation: "Total marbles = 5 + 4 + 3 = 12. Ways to pick 2 red marbles = 5C2 = 10. Total ways to pick any 2 marbles = 12C2 = (12 × 11)/2 = 66. Probability = 10/66 = 5/33."
+        }
+      ]
+    },
+    di: {
+      name: "Data Interpretation",
+      icon: "📊",
+      subtopics: ["All", "Pie Charts", "Bar Graphs", "Tables", "Line Graphs"],
+      questions: [
+        {
+          id: "apt_di_1",
+          subtopic: "Pie Charts",
+          diff: "Medium",
+          prompt: "In a company budget breakdown of $2,400,000: Cloud Infra (35%), Engineering Salaries (40%), Marketing (15%), Operations (10%). How much more is spent on Engineering Salaries than Marketing?",
+          formula: "Difference % = 40% - 15% = 25%\nDollar Difference = 25% of $2,400,000 = 0.25 × 2,400,000",
+          options: ["$600,000", "$450,000", "$720,000", "$500,000"],
+          correct: 0,
+          explanation: "Engineering = 40% ($960,000). Marketing = 15% ($360,000). Difference = $960,000 - $360,000 = $600,000 (which is 25% of total)."
+        },
+        {
+          id: "apt_di_2",
+          subtopic: "Tables",
+          diff: "Medium",
+          prompt: "A tech startup reports users (in thousands): Year 1: 50, Year 2: 80, Year 3: 140. What is the Compound Annual Growth Rate (CAGR) from Year 1 to Year 3?",
+          formula: "CAGR = (End / Start)^(1/n) - 1\n= (140 / 50)^(1/2) - 1 = (2.8)^0.5 - 1 ≈ 1.673 - 1 = 67.3%",
+          options: ["~67.3%", "~90.0%", "~45.5%", "~80.0%"],
+          correct: 0,
+          explanation: "CAGR = (140/50)^(1/2) - 1 = sqrt(2.8) - 1 ≈ 1.6733 - 1 = 67.33% per annum."
+        },
+        {
+          id: "apt_di_3",
+          subtopic: "Bar Graphs",
+          diff: "Easy",
+          prompt: "Quarterly server downtime (minutes): Q1: 120, Q2: 90, Q3: 60, Q4: 45. What is the percentage reduction in downtime from Q1 to Q4?",
+          formula: "Reduction % = [(Initial - Final) / Initial] × 100\n= [(120 - 45) / 120] × 100 = (75 / 120) × 100",
+          options: ["62.5%", "75.0%", "50.0%", "60.0%"],
+          correct: 0,
+          explanation: "Reduction = 120 - 45 = 75 minutes. Percentage reduction = (75 / 120) × 100 = 62.5%."
+        }
+      ]
+    },
+    verbal: {
+      name: "Verbal Ability",
+      icon: "📝",
+      subtopics: ["All", "Spotting Errors", "Synonyms & Antonyms", "Sentence Correction", "Reading Comprehension"],
+      questions: [
+        {
+          id: "apt_verb_1",
+          subtopic: "Spotting Errors",
+          diff: "Medium",
+          prompt: "Find the error part: 'Each of the microservices (A) / deployed on Kubernetes (B) / have their own isolated PostgreSQL database instance (C) / without shared state (D).'",
+          formula: "Grammar Rule: 'Each of + Plural Noun' takes a SINGULAR verb ('has its own', not 'have their own').",
+          options: ["Part (C) - 'have their own'", "Part (A)", "Part (B)", "Part (D) - No error"],
+          correct: 0,
+          explanation: "'Each' is singular distributively, requiring 'has its own isolated database instance' instead of 'have their own'."
+        },
+        {
+          id: "apt_verb_2",
+          subtopic: "Synonyms & Antonyms",
+          diff: "Easy",
+          prompt: "Choose the exact ANTONYM of the word: 'OBSOLETE'",
+          formula: "Obsolete = Outdated, no longer produced or used.\nAntonym = Contemporary, modern, cutting-edge, state-of-the-art.",
+          options: ["Cutting-edge / Contemporary", "Archaic", "Redundant", "Defunct"],
+          correct: 0,
+          explanation: "'Obsolete' means no longer produced or out of date. Its opposite is 'Cutting-edge' or 'Contemporary'."
+        },
+        {
+          id: "apt_verb_3",
+          subtopic: "Sentence Correction",
+          diff: "Medium",
+          prompt: "Select the best replacement: 'If the distributed cache would have been configured properly, the latency spike would not have crashed the payment gateway.'",
+          formula: "Third Conditional Rule: 'If + Past Perfect (had been), ... would have + Past Participle'",
+          options: ["If the distributed cache had been configured properly", "If the distributed cache was configured", "Had the cache would configure", "No improvement needed"],
+          correct: 0,
+          explanation: "In conditional sentences referring to past unfulfilled conditions, use 'If + had been configured' (past perfect), never 'would have been' in the if-clause."
+        }
+      ]
+    },
+    logical: {
+      name: "Logical Reasoning",
+      icon: "🔄",
+      subtopics: ["All", "Coding-Decoding", "Blood Relations", "Direction Sense", "Number Series", "Seating Arrangement"],
+      questions: [
+        {
+          id: "apt_log_1",
+          subtopic: "Coding-Decoding",
+          diff: "Easy",
+          prompt: "In a certain placement code, 'SERVER' is written as 'TFWWFS'. How is 'CLIENT' coded in that same pattern?",
+          formula: "Pattern: Each letter is shifted forward by +1 position in the alphabet.\nS(+1)T, E(+1)F, R(+1)S, V(+1)W, E(+1)F, R(+1)S",
+          options: ["DMJFOU", "DMKFOV", "CLJENU", "DMIENU"],
+          correct: 0,
+          explanation: "C(+1)D, L(+1)M, I(+1)J, E(+1)F, N(+1)O, T(+1)U -> DMJFOU."
+        },
+        {
+          id: "apt_log_2",
+          subtopic: "Blood Relations",
+          diff: "Medium",
+          prompt: "Introducing a man, a woman says: 'His wife is the only daughter of my mother.' How is the man related to the woman?",
+          formula: "Only daughter of woman's mother = The woman herself.\nTherefore, the man's wife = The woman herself => Man is Husband.",
+          options: ["Husband", "Brother", "Father-in-law", "Maternal Uncle"],
+          correct: 0,
+          explanation: "The only daughter of the woman's mother is the woman herself. Since the woman herself is the man's wife, the man is her Husband."
+        },
+        {
+          id: "apt_log_3",
+          subtopic: "Number Series",
+          diff: "Medium",
+          prompt: "Identify the missing term in the sequence: 4, 18, 48, 100, 180, ?",
+          formula: "Pattern: n³ - n² or n² × (n - 1) for n = 2, 3, 4, 5, 6, 7...\nn=2: 8-4=4\nn=3: 27-9=18\nn=4: 64-16=48\nn=5: 125-25=100\nn=6: 216-36=180\nn=7: 343-49 = 294",
+          options: ["294", "280", "312", "275"],
+          correct: 0,
+          explanation: "Series pattern is n³ - n² starting from n=2. For n=7: 7³ - 7² = 343 - 49 = 294."
+        },
+        {
+          id: "apt_log_4",
+          subtopic: "Direction Sense",
+          diff: "Easy",
+          prompt: "An engineer walks 20m North, turns Right and walks 30m, turns Right again and walks 20m. How far and in which direction is she from the starting point?",
+          formula: "North 20m -> East 30m -> South 20m.\nNet North-South = 20 - 20 = 0m. Net East-West = 30m East.",
+          options: ["30m East", "30m West", "50m North-East", "20m East"],
+          correct: 0,
+          explanation: "The 20m North and 20m South cancel out completely. She is exactly 30m East of her starting location."
+        }
+      ]
+    },
+    verbal_reasoning: {
+      name: "Verbal Reasoning",
+      icon: "ABC",
+      subtopics: ["All", "Statement & Assumptions", "Course of Action", "Cause & Effect", "Syllogisms"],
+      questions: [
+        {
+          id: "apt_vr_1",
+          subtopic: "Statement & Assumptions",
+          diff: "Medium",
+          prompt: "Statement: 'The IT company made it mandatory for all junior software engineers to complete a certified cloud security course before promotion.'\nAssumption I: Cloud security proficiency is relevant for higher engineering roles.\nAssumption II: Junior engineers are capable of completing certification courses.",
+          formula: "A company mandates training assuming both relevance (I) and candidate capability (II). Both are implicit.",
+          options: ["Both I and II are implicit", "Only Assumption I is implicit", "Only Assumption II is implicit", "Neither is implicit"],
+          correct: 0,
+          explanation: "The company creates this requirement assuming both that cloud security is crucial for promoted engineers (I) and that juniors can pass the certification (II)."
+        },
+        {
+          id: "apt_vr_2",
+          subtopic: "Syllogisms",
+          diff: "Medium",
+          prompt: "Statements:\n1. All microservices are scalable systems.\n2. Some scalable systems are distributed databases.\nConclusions:\nI. Some microservices are distributed databases.\nII. Some scalable systems are microservices.",
+          formula: "All A are B -> Some B are A (Conversion holds). Conclusion II is strictly valid. Conclusion I cannot be asserted with certainty.",
+          options: ["Only Conclusion II follows", "Only Conclusion I follows", "Both I and II follow", "Neither follows"],
+          correct: 0,
+          explanation: "From 'All microservices are scalable systems', the immediate conversion 'Some scalable systems are microservices' is definitely true. There is no definite connection given between microservices and distributed databases."
+        }
+      ]
+    },
+    nonverbal: {
+      name: "Nonverbal Reasoning",
+      icon: "▦",
+      subtopics: ["All", "Cubes & Dice", "Pattern Completion", "Mirror Images", "Paper Folding"],
+      questions: [
+        {
+          id: "apt_nvr_1",
+          subtopic: "Cubes & Dice",
+          diff: "Medium",
+          prompt: "A wooden cube is painted blue on all 6 faces and then cut into 64 smaller identical cubes (4×4×4). How many small cubes have exactly TWO faces painted blue?",
+          formula: "Formula for 2 painted faces = 12 × (n - 2), where n = number of cuts along an edge = 4\n= 12 × (4 - 2) = 12 × 2 = 24",
+          options: ["24", "16", "32", "8"],
+          correct: 0,
+          explanation: "For an n×n×n cube (n=4): Cubes with 2 painted faces lie along the 12 edges (excluding corners) = 12 × (n - 2) = 12 × 2 = 24 cubes."
+        },
+        {
+          id: "apt_nvr_2",
+          subtopic: "Cubes & Dice",
+          diff: "Easy",
+          prompt: "In a standard closed dice, face 1 is opposite 6, face 2 opposite 5, and face 3 opposite 4. If face 4 is on the top and face 5 faces North, which face is on the bottom?",
+          formula: "Opposite of Top face (4) = Bottom face (3)",
+          options: ["3", "1", "2", "6"],
+          correct: 0,
+          explanation: "Since opposite of face 4 is face 3, when face 4 is on top, face 3 must be at the bottom."
+        }
+      ]
+    },
+    online_tests: {
+      name: "Online Mock Tests",
+      icon: "⏱️",
+      subtopics: ["All", "TCS NQT Full Mock", "Infosys Diagnostic", "Wipro Turbo Test", "Speed Drill"],
+      questions: [
+        {
+          id: "apt_mock_1",
+          subtopic: "TCS NQT Full Mock",
+          diff: "Hard",
+          prompt: "If log₂ x + log₄ x + log₁₆ x = 21/4, what is the exact value of x?",
+          formula: "log₄ x = (1/2)log₂ x, log₁₆ x = (1/4)log₂ x\nlog₂ x (1 + 1/2 + 1/4) = log₂ x (7/4) = 21/4 => log₂ x = 3 => x = 2³ = 8",
+          options: ["8", "16", "4", "32"],
+          correct: 0,
+          explanation: "Convert all to base 2: log₂ x + (1/2)log₂ x + (1/4)log₂ x = (7/4)log₂ x. (7/4)log₂ x = 21/4 => log₂ x = 3 => x = 2³ = 8."
+        },
+        {
+          id: "apt_mock_2",
+          subtopic: "Infosys Diagnostic",
+          diff: "Medium",
+          prompt: "Find the unit digit in the expansion of 7^105.",
+          formula: "Cyclicity of powers of 7: 7¹=7, 7²=9, 7³=3, 7⁴=1 (Period = 4)\n105 mod 4 = 1 => Unit digit = 7¹ = 7",
+          options: ["7", "9", "3", "1"],
+          correct: 0,
+          explanation: "Powers of 7 cycle in unit digits [7, 9, 3, 1] with period 4. 105 ÷ 4 leaves a remainder of 1. Therefore, unit digit is 7^1 = 7."
+        }
+      ]
+    },
+    current_affairs: {
+      name: "Current Affairs",
+      icon: "🌍",
+      subtopics: ["All", "Science & Tech", "AI & Computing", "Economy & Business"],
+      questions: [
+        {
+          id: "apt_ca_1",
+          subtopic: "AI & Computing",
+          diff: "Easy",
+          prompt: "Which AI research milestone introduced the concept of 'Reinforcement Learning from Human Feedback' (RLHF) to align LLMs with user instructions?",
+          formula: "Concept: InstructGPT & OpenAI 2022 research popularized RLHF for aligning conversational models safely.",
+          options: ["InstructGPT & ChatGPT (OpenAI)", "AlexNet (2012)", "AlphaGo (DeepMind)", "BERT (Google)"],
+          correct: 0,
+          explanation: "RLHF (Reinforcement Learning from Human Feedback) was pioneered and demonstrated at scale by OpenAI in InstructGPT and ChatGPT to align model outputs with human helpfulness and safety."
+        },
+        {
+          id: "apt_ca_2",
+          subtopic: "Science & Tech",
+          diff: "Medium",
+          prompt: "What is the primary technical distinction of Quantum Computing compared to Classical Computing?",
+          formula: "Classical uses Bits (0 or 1); Quantum uses Qubits capable of Superposition and Entanglement.",
+          options: ["Qubits exist in superposition of states (0 and 1 simultaneously)", "Quantum computers only execute binary logic 100x faster", "Quantum processors do not generate thermal heat", "Quantum bits cannot be encrypted"],
+          correct: 0,
+          explanation: "Quantum computers leverage Qubits which, through the quantum mechanical phenomenon of superposition, can represent linear combinations of 0 and 1 simultaneously."
+        }
+      ]
+    },
+    gk: {
+      name: "General Knowledge",
+      icon: "💡",
+      subtopics: ["All", "Computer Systems", "Operating Systems Trivia", "Core Science"],
+      questions: [
+        {
+          id: "apt_gk_1",
+          subtopic: "Computer Systems",
+          diff: "Easy",
+          prompt: "Who is widely recognized as the 'Father of Computer Science' and formulated the concept of theoretical Turing Machines?",
+          formula: "Historical Foundation: Alan Turing (1912-1954) formulated computation models, Turing completeness, and cryptanalysis.",
+          options: ["Alan Turing", "John von Neumann", "Charles Babbage", "Dennis Ritchie"],
+          correct: 0,
+          explanation: "Alan Turing is considered the father of modern computer science and theoretical artificial intelligence."
+        },
+        {
+          id: "apt_gk_2",
+          subtopic: "Operating Systems Trivia",
+          diff: "Easy",
+          prompt: "Which Linux command displays real-time CPU, memory, and running process utilization metrics interactively?",
+          formula: "CLI Tools: 'top' or 'htop' provide dynamic interactive process hierarchy and system health monitoring.",
+          options: ["top / htop", "grep", "chmod", "df -h"],
+          correct: 0,
+          explanation: "'top' (and its enhanced version 'htop') provides real-time interactive process inspection, CPU load average, and RAM memory consumption."
+        }
+      ]
+    },
+    hr: {
+      name: "HR Interview",
+      icon: "👤",
+      subtopics: ["All", "STAR Method", "Behavioral Scenarios", "Classic HR"],
+      questions: [
+        {
+          id: "apt_hr_1",
+          subtopic: "STAR Method",
+          diff: "Easy",
+          prompt: "In the STAR interview answering framework, what does 'Result' specifically require the candidate to demonstrate?",
+          formula: "STAR: Situation -> Task -> Action -> RESULT (Quantifiable impact, metrics improved, learnings acquired).",
+          options: ["Quantifiable positive business/technical outcomes and key learnings", "A list of team members who helped you", "The code repository link", "A description of the company culture"],
+          correct: 0,
+          explanation: "The Result step must quantify your impact with tangible metrics (e.g. 'reduced latency by 35%', 'resolved 12 critical bugs ahead of sprint deadline') and personal takeaways."
+        },
+        {
+          id: "apt_hr_2",
+          subtopic: "Behavioral Scenarios",
+          diff: "Medium",
+          prompt: "When asked: 'Tell me about a time you had a technical disagreement with a team member', what is the most effective approach?",
+          formula: "Best Practice: Ground disagreement in data & test benchmarks, communicate objectively, find consensus, and commit to the team's unified decision.",
+          options: ["Explain how you used data/benchmarks objectively, listened to their perspective, and reached a constructive consensus", "Explain that you escalated immediately to senior management", "State that you never have disagreements because you always do what others say", "Insist that your code is always superior and the other person conceded"],
+          correct: 0,
+          explanation: "Interviewers evaluate emotional intelligence, collaboration, and objective problem-solving through evidence rather than ego."
+        }
+      ]
+    }
+  }
+};
+
+const aptState = {
+  currentCategory: "arithmetic",
+  currentSubtopic: "All",
+  filteredQuestions: [],
+  currentIndex: 0,
+  selectedIndex: null,
+  isSubmitted: false,
+  isHintShown: false,
+  timerSeconds: 0,
+  timerInterval: null,
+  stats: {
+    attempted: 0,
+    correct: 0,
+    totalSeconds: 0
+  },
+  isMockTest: false
+};
+
+function initAptitudeView() {
+  bindAptitudeCategoryButtons();
+  bindAptitudeActionButtons();
+  selectAptitudeCategory("arithmetic");
+}
+
+function bindAptitudeCategoryButtons() {
+  const catList = document.getElementById("aptitudeCategoryList");
+  if (!catList || catList.dataset.bound) return;
+  catList.dataset.bound = "true";
+
+  catList.querySelectorAll(".apt-cat-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const catKey = btn.getAttribute("data-category");
+      selectAptitudeCategory(catKey);
+    });
+  });
+}
+
+function bindAptitudeActionButtons() {
+  const submitBtn = document.getElementById("aptSubmitBtn");
+  if (submitBtn && !submitBtn.dataset.bound) {
+    submitBtn.dataset.bound = "true";
+    submitBtn.addEventListener("click", handleAptitudeSubmit);
+  }
+
+  const nextBtn = document.getElementById("aptNextBtn");
+  if (nextBtn && !nextBtn.dataset.bound) {
+    nextBtn.dataset.bound = "true";
+    nextBtn.addEventListener("click", handleAptitudeNext);
+  }
+
+  const prevBtn = document.getElementById("aptPrevBtn");
+  if (prevBtn && !prevBtn.dataset.bound) {
+    prevBtn.dataset.bound = "true";
+    prevBtn.addEventListener("click", handleAptitudePrev);
+  }
+
+  const hintBtn = document.getElementById("aptHintBtn");
+  if (hintBtn && !hintBtn.dataset.bound) {
+    hintBtn.dataset.bound = "true";
+    hintBtn.addEventListener("click", toggleAptitudeHint);
+  }
+
+  const shuffleBtn = document.getElementById("randomAptitudeDrillBtn");
+  if (shuffleBtn && !shuffleBtn.dataset.bound) {
+    shuffleBtn.dataset.bound = "true";
+    shuffleBtn.addEventListener("click", shuffleAptitudeQuestion);
+  }
+
+  const mockBtn = document.getElementById("startAptitudeMockBtn");
+  if (mockBtn && !mockBtn.dataset.bound) {
+    mockBtn.dataset.bound = "true";
+    mockBtn.addEventListener("click", startAptitudeMockMode);
+  }
+}
+
+function selectAptitudeCategory(catKey) {
+  const catData = APTITUDE_DATA.categories[catKey];
+  if (!catData) return;
+
+  aptState.currentCategory = catKey;
+  aptState.currentSubtopic = "All";
+  aptState.currentIndex = 0;
+  aptState.isMockTest = false;
+
+  // Update active category button in sidebar
+  document.querySelectorAll("#aptitudeCategoryList .apt-cat-btn").forEach(btn => {
+    if (btn.getAttribute("data-category") === catKey) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  // Render Subtopics Bar
+  renderAptitudeSubtopics(catData.subtopics);
+
+  // Filter and Load Questions
+  filterAptitudeQuestions();
+}
+
+function renderAptitudeSubtopics(subtopics) {
+  const bar = document.getElementById("aptSubtopicsBar");
+  if (!bar) return;
+  bar.innerHTML = "";
+
+  subtopics.forEach(sub => {
+    const pill = document.createElement("button");
+    pill.className = `apt-subtopic-pill ${sub === aptState.currentSubtopic ? "active" : ""}`;
+    pill.textContent = sub;
+    pill.addEventListener("click", () => {
+      aptState.currentSubtopic = sub;
+      aptState.currentIndex = 0;
+      document.querySelectorAll(".apt-subtopic-pill").forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      filterAptitudeQuestions();
+    });
+    bar.appendChild(pill);
+  });
+}
+
+function filterAptitudeQuestions() {
+  const catData = APTITUDE_DATA.categories[aptState.currentCategory];
+  if (!catData) return;
+
+  if (aptState.currentSubtopic === "All") {
+    aptState.filteredQuestions = [...catData.questions];
+  } else {
+    aptState.filteredQuestions = catData.questions.filter(q => q.subtopic === aptState.currentSubtopic);
+  }
+
+  if (aptState.filteredQuestions.length === 0) {
+    aptState.filteredQuestions = [...catData.questions];
+  }
+
+  renderCurrentAptitudeQuestion();
+}
+
+function renderCurrentAptitudeQuestion() {
+  const q = aptState.filteredQuestions[aptState.currentIndex];
+  if (!q) return;
+
+  aptState.selectedIndex = null;
+  aptState.isSubmitted = false;
+  aptState.isHintShown = false;
+  aptState.timerSeconds = 0;
+
+  // Start question timer
+  clearInterval(aptState.timerInterval);
+  const timerDisplay = document.getElementById("aptTimerDisplay");
+  if (timerDisplay) timerDisplay.textContent = "⏱ 00:00";
+  aptState.timerInterval = setInterval(() => {
+    aptState.timerSeconds++;
+    const m = String(Math.floor(aptState.timerSeconds / 60)).padStart(2, "0");
+    const s = String(aptState.timerSeconds % 60).padStart(2, "0");
+    if (timerDisplay) timerDisplay.textContent = `⏱ ${m}:${s}`;
+  }, 1000);
+
+  // Badges & Meta
+  const catBadge = document.getElementById("aptCurrentCatBadge");
+  if (catBadge) catBadge.textContent = APTITUDE_DATA.categories[aptState.currentCategory]?.name || "Aptitude";
+
+  const subBadge = document.getElementById("aptCurrentSubtopicBadge");
+  if (subBadge) subBadge.textContent = `${q.subtopic} (${aptState.currentIndex + 1}/${aptState.filteredQuestions.length})`;
+
+  const diffBadge = document.getElementById("aptDifficultyBadge");
+  if (diffBadge) {
+    diffBadge.textContent = q.diff;
+    diffBadge.className = `badge ${q.diff === "Easy" ? "badge-success" : q.diff === "Hard" ? "badge-danger" : "badge-warning"}`;
+  }
+
+  // Prompt text
+  const promptEl = document.getElementById("aptQuestionPrompt");
+  if (promptEl) promptEl.textContent = q.prompt;
+
+  // Formula box (hidden initially)
+  const formulaBox = document.getElementById("aptFormulaBox");
+  const formulaContent = document.getElementById("aptFormulaContent");
+  if (formulaBox && formulaContent) {
+    formulaBox.style.display = "none";
+    formulaContent.textContent = q.formula || "No standard shortcut formula needed for this concept.";
+  }
+
+  // Options Grid
+  const optionsGrid = document.getElementById("aptOptionsGrid");
+  if (optionsGrid) {
+    optionsGrid.innerHTML = "";
+    const letters = ["A", "B", "C", "D"];
+    q.options.forEach((optText, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "apt-option-btn";
+      btn.innerHTML = `
+        <span class="apt-option-letter">${letters[idx]}</span>
+        <span>${optText}</span>
+      `;
+      btn.addEventListener("click", () => {
+        if (aptState.isSubmitted) return;
+        aptState.selectedIndex = idx;
+        document.querySelectorAll(".apt-option-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+      });
+      optionsGrid.appendChild(btn);
+    });
+  }
+
+  // Hide solution box
+  const solBox = document.getElementById("aptSolutionBox");
+  if (solBox) solBox.style.display = "none";
+
+  // Reset Action Buttons
+  const submitBtn = document.getElementById("aptSubmitBtn");
+  if (submitBtn) submitBtn.style.display = "inline-block";
+
+  const nextBtn = document.getElementById("aptNextBtn");
+  if (nextBtn) nextBtn.style.display = "none";
+
+  const prevBtn = document.getElementById("aptPrevBtn");
+  if (prevBtn) prevBtn.disabled = (aptState.currentIndex === 0);
+}
+
+function handleAptitudeSubmit() {
+  if (aptState.selectedIndex === null) {
+    showToast("Please select an option before submitting!");
+    return;
+  }
+  if (aptState.isSubmitted) return;
+
+  clearInterval(aptState.timerInterval);
+  aptState.isSubmitted = true;
+
+  const q = aptState.filteredQuestions[aptState.currentIndex];
+  const isCorrect = (aptState.selectedIndex === q.correct);
+
+  // Update Stats
+  aptState.stats.attempted++;
+  if (isCorrect) aptState.stats.correct++;
+  aptState.stats.totalSeconds += aptState.timerSeconds;
+
+  updateAptitudeStatsUI();
+
+  // Highlight Options
+  const optionButtons = document.querySelectorAll(".apt-option-btn");
+  optionButtons.forEach((btn, idx) => {
+    btn.classList.add("disabled");
+    if (idx === q.correct) {
+      btn.classList.add("correct");
+    } else if (idx === aptState.selectedIndex && !isCorrect) {
+      btn.classList.add("wrong");
+    }
+  });
+
+  // Display Solution Box
+  const solBox = document.getElementById("aptSolutionBox");
+  const resultStatus = document.getElementById("aptResultStatus");
+  const explText = document.getElementById("aptExplanationText");
+
+  if (solBox && resultStatus && explText) {
+    resultStatus.textContent = isCorrect ? "✅ Correct Answer!" : "❌ Incorrect (See Step-by-Step Breakdown)";
+    resultStatus.style.color = isCorrect ? "var(--accent-emerald)" : "var(--accent-rose)";
+    explText.textContent = q.explanation;
+    solBox.style.display = "block";
+  }
+
+  // Toggle Action Buttons
+  const submitBtn = document.getElementById("aptSubmitBtn");
+  if (submitBtn) submitBtn.style.display = "none";
+
+  const nextBtn = document.getElementById("aptNextBtn");
+  if (nextBtn) nextBtn.style.display = "inline-block";
+
+  showToast(isCorrect ? "🎯 Excellent! Correct answer." : "💡 Solution explained below.");
+}
+
+function handleAptitudeNext() {
+  if (aptState.currentIndex < aptState.filteredQuestions.length - 1) {
+    aptState.currentIndex++;
+    renderCurrentAptitudeQuestion();
+  } else {
+    showToast("🎉 You reached the end of this subtopic! Shuffling questions...");
+    aptState.currentIndex = 0;
+    renderCurrentAptitudeQuestion();
+  }
+}
+
+function handleAptitudePrev() {
+  if (aptState.currentIndex > 0) {
+    aptState.currentIndex--;
+    renderCurrentAptitudeQuestion();
+  }
+}
+
+function toggleAptitudeHint() {
+  const formulaBox = document.getElementById("aptFormulaBox");
+  if (!formulaBox) return;
+  aptState.isHintShown = !aptState.isHintShown;
+  formulaBox.style.display = aptState.isHintShown ? "block" : "none";
+}
+
+function shuffleAptitudeQuestion() {
+  if (aptState.filteredQuestions.length > 1) {
+    let nextIdx = Math.floor(Math.random() * aptState.filteredQuestions.length);
+    if (nextIdx === aptState.currentIndex) {
+      nextIdx = (nextIdx + 1) % aptState.filteredQuestions.length;
+    }
+    aptState.currentIndex = nextIdx;
+  }
+  renderCurrentAptitudeQuestion();
+  showToast("🎲 Loaded a random placement aptitude question.");
+}
+
+function startAptitudeMockMode() {
+  aptState.isMockTest = true;
+  // Combine questions across all categories for a 10-Q comprehensive mock
+  const allQs = [];
+  Object.values(APTITUDE_DATA.categories).forEach(cat => {
+    allQs.push(...cat.questions);
+  });
+  
+  // Shuffle array
+  for (let i = allQs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allQs[i], allQs[j]] = [allQs[j], allQs[i]];
+  }
+
+  aptState.filteredQuestions = allQs.slice(0, 10);
+  aptState.currentIndex = 0;
+  aptState.currentCategory = "online_tests";
+  aptState.currentSubtopic = "All";
+
+  document.querySelectorAll("#aptitudeCategoryList .apt-cat-btn").forEach(btn => {
+    if (btn.getAttribute("data-category") === "online_tests") {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  renderCurrentAptitudeQuestion();
+  showToast("⚡ Starting 10-Question Timed Placement Mock Assessment!");
+}
+
+function updateAptitudeStatsUI() {
+  const attemptedEl = document.getElementById("aptStatAttempted");
+  if (attemptedEl) attemptedEl.textContent = aptState.stats.attempted;
+
+  const accEl = document.getElementById("aptStatAccuracy");
+  const accuracy = aptState.stats.attempted > 0 
+    ? Math.round((aptState.stats.correct / aptState.stats.attempted) * 100) 
+    : 0;
+  if (accEl) accEl.textContent = `${accuracy}%`;
+
+  const timeEl = document.getElementById("aptStatAvgTime");
+  const avgSeconds = aptState.stats.attempted > 0
+    ? Math.round(aptState.stats.totalSeconds / aptState.stats.attempted)
+    : 0;
+  if (timeEl) timeEl.textContent = `${avgSeconds}s`;
+
+  const boostEl = document.getElementById("aptStatReadiness");
+  const boost = (aptState.stats.correct * 0.75).toFixed(1);
+  if (boostEl) boostEl.textContent = `+${boost}%`;
 }

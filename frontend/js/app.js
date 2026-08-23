@@ -95,12 +95,58 @@ function setupEventListeners() {
     });
   }
 
-  // Navigation tabs
-
+  // Navigation tabs & Single-Open Accordion Logic
   document.querySelectorAll(".nav-item").forEach(item => {
-    item.addEventListener("click", () => {
+    item.addEventListener("click", (e) => {
       const tabTarget = item.getAttribute("data-tab");
-      switchTab(tabTarget);
+      const parentGroup = item.closest(".nav-group");
+
+      // Handle accordion groups: ONLY ONE OPEN AT A TIME
+      if (item.classList.contains("nav-accordion-toggle") && parentGroup) {
+        const wasOpen = parentGroup.classList.contains("open");
+        // Close ALL other accordion groups
+        document.querySelectorAll(".nav-group").forEach(g => g.classList.remove("open"));
+        
+        // Toggle the clicked group
+        if (!wasOpen) {
+          parentGroup.classList.add("open");
+        }
+      } else if (!parentGroup) {
+        // When clicking a non-group nav item, close open accordions
+        document.querySelectorAll(".nav-group").forEach(g => g.classList.remove("open"));
+      }
+
+      if (tabTarget) {
+        switchTab(tabTarget);
+      }
+    });
+  });
+
+  // Navigation Submenu Items Click Listeners
+  document.querySelectorAll(".nav-subitem").forEach(subitem => {
+    subitem.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      // Highlight active subitem
+      document.querySelectorAll(".nav-subitem").forEach(s => s.classList.remove("active"));
+      subitem.classList.add("active");
+
+      const action = subitem.getAttribute("data-action");
+      const tabTarget = subitem.getAttribute("data-tab");
+      const aptCategory = subitem.getAttribute("data-apt-category");
+
+      if (action === "start-drill") {
+        switchTab("tab-assessment");
+        startQuizSession("adaptive_practice", 8);
+      } else if (action === "start-diagnostic") {
+        switchTab("tab-assessment");
+        startQuizSession("diagnostic", 10);
+      } else if (tabTarget === "tab-aptitude" && aptCategory) {
+        switchTab("tab-aptitude");
+        selectAptitudeCategory(aptCategory);
+      } else if (tabTarget) {
+        switchTab(tabTarget);
+      }
     });
   });
 
@@ -277,7 +323,16 @@ function populateRoleDropdown() {
 function switchTab(tabId) {
   state.activeTab = tabId;
   
-  // Update sidebar active class
+  // Update sidebar active class & sync single-open accordion groups
+  document.querySelectorAll(".nav-group").forEach(g => g.classList.remove("open"));
+  if (tabId === "tab-assessment") {
+    const grp = document.getElementById("navGroupAdaptive");
+    if (grp) grp.classList.add("open");
+  } else if (tabId === "tab-aptitude") {
+    const grp = document.getElementById("navGroupAptitude");
+    if (grp) grp.classList.add("open");
+  }
+
   document.querySelectorAll(".nav-item").forEach(item => {
     if (item.getAttribute("data-tab") === tabId) {
       item.classList.add("active");

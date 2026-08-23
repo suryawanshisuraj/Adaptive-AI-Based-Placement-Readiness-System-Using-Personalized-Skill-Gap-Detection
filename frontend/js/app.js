@@ -1,9 +1,10 @@
 // ── Auth Guard ────────────────────────────────────────────────────────────────
-// If no user is stored in localStorage, redirect to auth page
+// If no user is stored in localStorage, redirect to landing page (where login is embedded)
 const _storedUserId = localStorage.getItem("placement_user_id");
 if (!_storedUserId) {
-  window.location.href = "/auth";
+  window.location.href = "/landing";
 }
+
 
 // Application State
 const state = {
@@ -1253,8 +1254,9 @@ async function handleSignOut() {
   localStorage.removeItem("placement_user_id");
   localStorage.removeItem("placement_user_name");
   localStorage.removeItem("placement_user_email");
-  window.location.href = "/auth";
+  window.location.href = "/landing";
 }
+
 
 // =========================================================================
 // APTITUDE & REASONING HUB MODULE

@@ -59,6 +59,116 @@
       gap: 12px;
     }
 
+    /* Embedded Auth Card in Hero */
+    .auth-hero-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 30px 28px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+      position: relative;
+    }
+    .auth-tab-group {
+      display: flex;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+    .auth-tab-btn {
+      flex: 1;
+      padding: 9px 0;
+      border: none;
+      background: transparent;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--font-sans);
+    }
+    .auth-tab-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+    .auth-form-group {
+      margin-bottom: 14px;
+    }
+    .auth-form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+    .auth-form-group input,
+    .auth-form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: #f8fafc;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .auth-form-group input:focus,
+    .auth-form-group select:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .pw-wrapper { position: relative; }
+    .pw-wrapper input { padding-right: 40px; }
+    .pw-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-auth-submit {
+      width: 100%;
+      padding: 11px;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    }
+    .btn-auth-submit:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+    .auth-alert {
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .auth-alert.error { background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; }
+    .auth-alert.success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; }
+    .auth-alert.show { display: block; }
+    .auth-form-panel { display: none; }
+    .auth-form-panel.active { display: block; }
+
+
     /* Hero Section */
     .landing-hero {
       position: relative;
@@ -491,38 +601,97 @@
       </div>
     </div>
 
-    <!-- Live Preview Interactive Card -->
-    <div class="hero-preview-card">
-      <div class="hero-preview-header">
-        <div>
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Diagnostic Index</span>
-          <h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-top: 2px;">Software Development Engineer</h3>
+    <!-- Embedded Auth Interactive Card -->
+    <div class="auth-hero-card" id="heroAuthCard">
+      <!-- Tabs for Unauthenticated Visitors -->
+      <div id="unauthAuthView">
+        <div class="auth-tab-group">
+          <button class="auth-tab-btn active" id="landingTabSignIn" onclick="switchLandingAuthTab('signin')">Sign In</button>
+          <button class="auth-tab-btn" id="landingTabSignUp" onclick="switchLandingAuthTab('signup')">Create Account</button>
         </div>
-        <span class="role-badge-pill">High Readiness</span>
+
+        <!-- Alert Notification -->
+        <div class="auth-alert" id="landingAuthAlert"></div>
+
+        <!-- Sign In Form -->
+        <div class="auth-form-panel active" id="landingPanelSignIn">
+          <form id="landingFormSignIn" onsubmit="handleLandingSignIn(event)">
+            <div class="auth-form-group">
+              <label for="landSiEmail">Email Address</label>
+              <input type="email" id="landSiEmail" placeholder="you@university.edu" required autocomplete="email">
+            </div>
+            <div class="auth-form-group">
+              <label for="landSiPassword">Password</label>
+              <div class="pw-wrapper">
+                <input type="password" id="landSiPassword" placeholder="Enter password" required autocomplete="current-password">
+                <button type="button" class="pw-toggle" onclick="toggleLandingPassword('landSiPassword', this)">👁️</button>
+              </div>
+            </div>
+            <button type="submit" class="btn-auth-submit" id="btnLandingSignIn">Sign In to Dashboard</button>
+          </form>
+
+          <div style="margin-top: 14px; text-align: center; border-top: 1px solid var(--border-color); padding-top: 14px;">
+            <button type="button" onclick="loginAsDemoUserFromLanding()" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: #0284c7; padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-sans); transition: all 0.2s ease;">
+              <span>⚡</span> Instant Demo Mode (Alex Rivera)
+            </button>
+          </div>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div class="auth-form-panel" id="landingPanelSignUp">
+          <form id="landingFormSignUp" onsubmit="handleLandingSignUp(event)">
+            <div class="auth-form-group">
+              <label for="landSuName">Full Name</label>
+              <input type="text" id="landSuName" placeholder="e.g. John Doe" required autocomplete="name">
+            </div>
+            <div class="auth-form-group">
+              <label for="landSuEmail">Email Address</label>
+              <input type="email" id="landSuEmail" placeholder="you@university.edu" required autocomplete="email">
+            </div>
+            <div class="auth-form-group">
+              <label for="landSuPassword">Password</label>
+              <div class="pw-wrapper">
+                <input type="password" id="landSuPassword" placeholder="Min. 6 characters" required minlength="6" autocomplete="new-password">
+                <button type="button" class="pw-toggle" onclick="toggleLandingPassword('landSuPassword', this)">👁️</button>
+              </div>
+            </div>
+            <div class="auth-form-group">
+              <label for="landSuRole">Target Career Track</label>
+              <select id="landSuRole" required>
+                <option value="java_developer">☕ Java Backend Developer</option>
+                <option value="python_developer">🐍 Python / Django Developer</option>
+                <option value="data_analyst">📊 Data Analyst</option>
+                <option value="ml_engineer">🤖 Machine Learning Engineer</option>
+                <option value="web_developer">🌐 Full Stack Web Developer</option>
+                <option value="devops_engineer">⚙️ DevOps / Cloud Engineer</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-auth-submit" id="btnLandingSignUp">Create Account & Start</button>
+          </form>
+        </div>
       </div>
 
-      <div class="dial-center">
-        <div class="dial-score-big">82.4%</div>
-        <div class="dial-label">Weighted Placement Index</div>
-      </div>
+      <!-- Active Logged-In View (shown if already logged in) -->
+      <div id="authLoggedInView" style="display: none;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+          <div>
+            <span style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase;">● Session Active</span>
+            <h3 id="loggedInUserNameTitle" style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">Candidate</h3>
+          </div>
+          <span id="loggedInRoleBadge" class="role-badge-pill">Target Track</span>
+        </div>
 
-      <div style="background: #f8fafc; border-radius: var(--radius-md); padding: 16px; margin-top: 16px; border: 1px solid var(--border-color);">
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
-          <span style="color: var(--text-secondary); font-weight: 600;">Data Structures & Algos (35%)</span>
-          <span style="color: var(--accent-emerald); font-weight: 700;">88% Match</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
-          <span style="color: var(--text-secondary); font-weight: 600;">System Design & Java (25%)</span>
-          <span style="color: var(--accent-indigo); font-weight: 700;">84% Match</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px;">
-          <span style="color: var(--text-secondary); font-weight: 600;">SQL & Relational DBs (20%)</span>
-          <span style="color: var(--accent-amber); font-weight: 700;">72% Match</span>
-        </div>
-      </div>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+          You are currently signed in. Access your personalized AI skill-gap diagnosis, adaptive tests, and dynamic 5-day roadmap.
+        </p>
 
-      <div style="margin-top: 20px; text-align: center;">
-        <a href="/" style="font-size: 13px; color: var(--primary); font-weight: 600; text-decoration: none;">Explore Full Interactive Dashboard →</a>
+        <a href="/" class="btn-auth-submit" style="display: block; text-align: center; text-decoration: none; padding: 12px; margin-bottom: 10px;">
+          🚀 Open Placement Workspace →
+        </a>
+
+        <button type="button" onclick="handleLandingSignOut()" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; width: 100%; transition: all 0.2s ease;">
+          Sign Out of Account
+        </button>
       </div>
     </div>
   </section>
@@ -759,21 +928,172 @@
       `).join('');
     }
 
+    // ─── Supabase init ────────────────────────────────────────────────
+    const SUPABASE_URL  = 'https://lxqlvfwubnkvxqkabeag.supabase.co';
+    const SUPABASE_ANON = 'sb_publishable_Z4CG7DBXYvhZs5lunsOqPA_q3H26mhB';
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+    const API_BASE = window.location.origin;
+
+    // ─── Tab switching ────────────────────────────────────────────────
+    function switchLandingAuthTab(tab) {
+      document.getElementById('landingPanelSignIn').classList.toggle('active', tab === 'signin');
+      document.getElementById('landingPanelSignUp').classList.toggle('active', tab === 'signup');
+      document.getElementById('landingTabSignIn').classList.toggle('active', tab === 'signin');
+      document.getElementById('landingTabSignUp').classList.toggle('active', tab === 'signup');
+      hideLandingAuthAlert();
+    }
+
+    function showLandingAuthAlert(msg, type = 'error') {
+      const el = document.getElementById('landingAuthAlert');
+      if (!el) return;
+      el.textContent = msg;
+      el.className = `auth-alert ${type} show`;
+    }
+
+    function hideLandingAuthAlert() {
+      const el = document.getElementById('landingAuthAlert');
+      if (el) el.className = 'auth-alert';
+    }
+
+    function toggleLandingPassword(fieldId, btn) {
+      const field = document.getElementById(fieldId);
+      if (!field) return;
+      if (field.type === 'password') { field.type = 'text'; btn.textContent = '🙈'; }
+      else { field.type = 'password'; btn.textContent = '👁️'; }
+    }
+
+    function setLandingAuthLoading(btnId, loading, text) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = loading;
+      btn.textContent = text;
+    }
+
+    async function registerOnBackend(userId, name, email, targetRole) {
+      try {
+        await fetch(`${API_BASE}/api/profile/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: userId, name, email, target_role: targetRole })
+        });
+      } catch (e) {
+        console.warn('Backend register error:', e);
+      }
+    }
+
+    function loginAsDemoUserFromLanding() {
+      localStorage.setItem('placement_user_id', 'usr_alex_rivera');
+      localStorage.setItem('placement_user_name', 'Alex Rivera');
+      localStorage.setItem('placement_user_email', 'alex.rivera@campus.edu');
+      showLandingAuthAlert('⚡ Launching Alex Rivera benchmark workspace...', 'success');
+      setTimeout(() => { window.location.href = '/'; }, 600);
+    }
+
+    async function handleLandingSignIn(e) {
+      e.preventDefault();
+      hideLandingAuthAlert();
+      const email = document.getElementById('landSiEmail').value.trim();
+      const password = document.getElementById('landSiPassword').value;
+      setLandingAuthLoading('btnLandingSignIn', true, 'Signing in...');
+
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        const user = data.user;
+        await registerOnBackend(user.id, user.user_metadata?.full_name || email, email, user.user_metadata?.target_role || 'java_developer');
+
+        localStorage.setItem('placement_user_id', user.id);
+        localStorage.setItem('placement_user_name', user.user_metadata?.full_name || email);
+        localStorage.setItem('placement_user_email', email);
+
+        showLandingAuthAlert('✅ Welcome back! Launching workspace...', 'success');
+        setTimeout(() => { window.location.href = '/'; }, 800);
+      } catch (err) {
+        showLandingAuthAlert('❌ ' + (err.message || 'Sign in failed. Check credentials.'), 'error');
+        setLandingAuthLoading('btnLandingSignIn', false, 'Sign In to Dashboard');
+      }
+    }
+
+    async function handleLandingSignUp(e) {
+      e.preventDefault();
+      hideLandingAuthAlert();
+      const name = document.getElementById('landSuName').value.trim();
+      const email = document.getElementById('landSuEmail').value.trim();
+      const password = document.getElementById('landSuPassword').value;
+      const role = document.getElementById('landSuRole').value;
+      setLandingAuthLoading('btnLandingSignUp', true, 'Creating account...');
+
+      try {
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: name, target_role: role } }
+        });
+        if (error) throw error;
+
+        const user = data.user;
+        const userId = user?.id || `usr_${Math.random().toString(36).slice(2, 10)}`;
+        await registerOnBackend(userId, name, email, role);
+
+        localStorage.setItem('placement_user_id', userId);
+        localStorage.setItem('placement_user_name', name);
+        localStorage.setItem('placement_user_email', email);
+
+        showLandingAuthAlert('🎉 Account created! Launching workspace...', 'success');
+        setTimeout(() => { window.location.href = '/'; }, 1000);
+      } catch (err) {
+        showLandingAuthAlert('❌ ' + (err.message || 'Sign up failed.'), 'error');
+        setLandingAuthLoading('btnLandingSignUp', false, 'Create Account & Start');
+      }
+    }
+
+    function handleLandingSignOut() {
+      localStorage.removeItem('placement_user_id');
+      localStorage.removeItem('placement_user_name');
+      localStorage.removeItem('placement_user_email');
+      try { sb.auth.signOut(); } catch (e) {}
+      window.location.reload();
+    }
+
+    // ── Check Active Session ─────────────────────────────────────────
+    function checkLandingSession() {
+      const storedId = localStorage.getItem('placement_user_id');
+      const storedName = localStorage.getItem('placement_user_name') || 'Candidate';
+      const storedEmail = localStorage.getItem('placement_user_email') || '';
+
+      const unauthView = document.getElementById('unauthAuthView');
+      const authView = document.getElementById('authLoggedInView');
+      const nameTitle = document.getElementById('loggedInUserNameTitle');
+      const roleBadge = document.getElementById('loggedInRoleBadge');
+
+      if (storedId && unauthView && authView) {
+        unauthView.style.display = 'none';
+        authView.style.display = 'block';
+        if (nameTitle) nameTitle.textContent = storedName;
+        if (roleBadge) roleBadge.textContent = storedEmail ? storedEmail.split('@')[0] : 'Active Candidate';
+      }
+    }
+
     // Init
     document.addEventListener('DOMContentLoaded', () => {
+      checkLandingSession();
       const data = roleData.sde;
       const list = document.getElementById('roleWeightsList');
-      list.innerHTML = data.weights.map(w => `
-        <div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:4px;">
-            <span>${w.name}</span>
-            <span style="color:${w.color};">${w.pct}% Weight</span>
+      if (list) {
+        list.innerHTML = data.weights.map(w => `
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:4px;">
+              <span>${w.name}</span>
+              <span style="color:${w.color};">${w.pct}% Weight</span>
+            </div>
+            <div style="background:#e2e8f0; height:7px; border-radius:4px; overflow:hidden;">
+              <div style="background:${w.color}; width:${w.pct}%; height:100%;"></div>
+            </div>
           </div>
-          <div style="background:#e2e8f0; height:7px; border-radius:4px; overflow:hidden;">
-            <div style="background:${w.color}; width:${w.pct}%; height:100%;"></div>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
     });
   </script>
 </body>

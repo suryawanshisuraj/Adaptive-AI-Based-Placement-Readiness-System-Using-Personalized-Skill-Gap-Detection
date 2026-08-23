@@ -1,3 +1,5 @@
+import uuid
+from fastapi import APIRouter
 from ..database import get_supabase, db_get_user, db_get_user_responses
 from ..schemas import LearningRoadmapResponse, RoadmapStepSchema
 from ..engine.recommender import generate_personalized_roadmap

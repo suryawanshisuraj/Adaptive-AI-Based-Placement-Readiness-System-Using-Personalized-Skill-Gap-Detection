@@ -1,7 +1,11 @@
 import uuid
 from typing import Dict, Any, List
 from fastapi import APIRouter, HTTPException
-from ..database import get_supabase
+from ..database import (
+    get_supabase, db_get_user, db_upsert_user,
+    db_get_user_responses, db_insert_response_log, db_get_user_skill_priors,
+    db_clear_user_logs
+)
 from ..schemas import PlacementReadinessReport, XAIExplanation
 from ..engine.readiness import calculate_placement_readiness
 from ..engine.skill_gap import analyze_all_skill_gaps
@@ -11,62 +15,50 @@ from ..data.question_bank import get_all_questions
 
 router = APIRouter(prefix="/api/analytics", tags=["Analytics & XAI"])
 
+
 def _get_user_responses(user_id: str) -> List[Dict[str, Any]]:
-    try:
-        sb = get_supabase()
-        result = sb.table("response_logs").select("*").eq("user_id", user_id).execute()
-        return result.data or []
-    except Exception as e:
-        print(f"[Analytics Warning] Could not fetch response_logs: {e}")
-        return []
+    return db_get_user_responses(user_id)
+
 
 @router.get("/readiness/{user_id}", response_model=PlacementReadinessReport)
 def get_readiness_report(user_id: str, target_role: str = None):
-    try:
-        sb = get_supabase()
-        user_result = sb.table("users").select("*").eq("id", user_id).execute()
-        user = user_result.data[0] if user_result.data else None
-    except Exception:
-        user = None
+    user = db_get_user(user_id)
     effective_role = target_role or (user["target_role"] if user else "java_developer")
     responses = _get_user_responses(user_id)
-    report = calculate_placement_readiness(user_id, effective_role, responses)
+    priors = db_get_user_skill_priors(user_id)
+    report = calculate_placement_readiness(user_id, effective_role, responses, priors)
     return report
+
 
 @router.get("/xai/{user_id}", response_model=XAIExplanation)
 def get_xai_breakdown(user_id: str, target_role: str = None):
-    try:
-        sb = get_supabase()
-        user_result = sb.table("users").select("*").eq("id", user_id).execute()
-        user = user_result.data[0] if user_result.data else None
-    except Exception:
-        user = None
+    user = db_get_user(user_id)
     effective_role = target_role or (user["target_role"] if user else "java_developer")
     responses = _get_user_responses(user_id)
-    xai_data = generate_xai_explanation(user_id, effective_role, responses)
+    priors = db_get_user_skill_priors(user_id)
+    xai_data = generate_xai_explanation(user_id, effective_role, responses, priors)
     return xai_data
+
 
 @router.get("/skill-gaps/{user_id}")
 def get_all_gaps(user_id: str):
     responses = _get_user_responses(user_id)
-    diags = analyze_all_skill_gaps(responses)
+    priors = db_get_user_skill_priors(user_id)
+    diags = analyze_all_skill_gaps(responses, priors)
     return list(diags.values())
+
 
 @router.get("/role-comparison/{user_id}")
 def get_role_comparison(user_id: str):
-    try:
-        sb = get_supabase()
-        user_result = sb.table("users").select("*").eq("id", user_id).execute()
-        user = user_result.data[0] if user_result.data else None
-    except Exception:
-        user = None
+    user = db_get_user(user_id)
     current_role = user["target_role"] if user else "java_developer"
     responses = _get_user_responses(user_id)
+    priors = db_get_user_skill_priors(user_id)
 
     all_roles = get_all_roles()
     comparisons = []
     for r_id, r_info in all_roles.items():
-        rep = calculate_placement_readiness(user_id, r_id, responses)
+        rep = calculate_placement_readiness(user_id, r_id, responses, priors)
         comparisons.append({
             "role_id": r_id,
             "role_title": r_info["title"],
@@ -78,36 +70,36 @@ def get_role_comparison(user_id: str):
         })
     return comparisons
 
+
+@router.post("/clear-data/{user_id}")
+@router.delete("/clear-data/{user_id}")
+def clear_user_data(user_id: str):
+    """
+    Clears all recorded test responses and sessions to restore clean state.
+    """
+    db_clear_user_logs(user_id)
+    return {
+        "status": "success",
+        "message": "User response logs cleared successfully.",
+        "user_id": user_id
+    }
+
+
 @router.post("/seed-demo-data/{user_id}")
 def seed_demo_profile_data(user_id: str):
     """
-    Seeds a representative diagnostic performance record:
-    Java: 82%, OOP: 76%, SQL: 48%, DBMS: 55%, Aptitude: 71%, Coding: 42%, Communication: 68%
+    Seeds a representative diagnostic performance record for testing or demonstration.
+    Preserves user name and email if already registered.
     """
-    sb = get_supabase()
-
-    # Ensure user exists
-    sb.table("users").upsert({
+    existing_user = db_get_user(user_id)
+    db_upsert_user({
         "id": user_id,
-        "name": "Alex Rivera",
-        "email": f"alex.rivera.{user_id}@campus.edu",
-        "target_role": "java_developer"
-    }).execute()
-
-    # Clear existing logs for fresh demo seed
-    sb.table("response_logs").delete().eq("user_id", user_id).execute()
-    sb.table("skill_mastery").delete().eq("user_id", user_id).execute()
+        "name": existing_user["name"] if existing_user and existing_user.get("name") else "Candidate",
+        "email": existing_user["email"] if existing_user and existing_user.get("email") else f"{user_id}@campus.edu",
+        "target_role": existing_user["target_role"] if existing_user and existing_user.get("target_role") else "java_developer"
+    })
 
     session_id = f"sess_demo_{uuid.uuid4().hex[:6]}"
-    sb.table("assessment_sessions").insert({
-        "id": session_id,
-        "user_id": user_id,
-        "session_type": "diagnostic",
-        "target_role": "java_developer",
-        "status": "completed",
-        "total_questions": 10
-    }).execute()
-
     demo_log_seeds = [
         ("sql_join_001", 1, 0, 58.0, "SQL JOINs", "Relational Queries", "SQL", 2),
         ("sql_join_002", 0, 0, 62.0, "SQL JOINs", "Relational Queries", "SQL", 3),
@@ -125,9 +117,8 @@ def seed_demo_profile_data(user_id: str):
         ("comm_001",     1, 1, 22.0, "Technical Communication", "Professional Verbal", "Communication", 2)
     ]
 
-    logs = []
     for q_id, s_idx, is_c, t_sec, sub, top, sk, diff in demo_log_seeds:
-        logs.append({
+        log_entry = {
             "id": f"log_{uuid.uuid4().hex[:8]}",
             "session_id": session_id,
             "user_id": user_id,
@@ -139,11 +130,13 @@ def seed_demo_profile_data(user_id: str):
             "topic": top,
             "skill": sk,
             "difficulty": diff
-        })
-    sb.table("response_logs").insert(logs).execute()
+        }
+        db_insert_response_log(log_entry)
 
     return {
         "status": "success",
         "message": "Demo diagnostic profile seeded successfully!",
         "user_id": user_id
     }
+
+

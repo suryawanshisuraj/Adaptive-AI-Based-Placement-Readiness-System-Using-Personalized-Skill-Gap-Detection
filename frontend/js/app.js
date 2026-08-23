@@ -272,10 +272,25 @@ function setupEventListeners() {
   const profileSeedBtn = document.getElementById("profileSeedBtn");
   if (profileSeedBtn) {
     profileSeedBtn.addEventListener("click", async () => {
+      profileSeedBtn.innerHTML = "⏳ Seeding demo...";
       await API.seedDemoData(state.currentUserId);
       await refreshAllViews();
-      renderProfileSliders();
-      showToast("Profile benchmark data reset!");
+      await renderProfileSliders();
+      profileSeedBtn.innerHTML = "⚡ Seed Benchmark Demo";
+      showToast("Benchmark demo profile seeded successfully!");
+    });
+  }
+
+  const clearDataBtn = document.getElementById("clearDataBtn");
+  if (clearDataBtn) {
+    clearDataBtn.addEventListener("click", async () => {
+      if (!confirm("Are you sure you want to clear all test attempts and start fresh with your custom scores?")) return;
+      clearDataBtn.innerHTML = "⏳ Clearing data...";
+      await API.clearUserData(state.currentUserId);
+      await refreshAllViews();
+      await renderProfileSliders();
+      clearDataBtn.innerHTML = "🧹 Clear Test Logs (Fresh Start)";
+      showToast("All test logs cleared! System is now running 100% on your real profile data.");
     });
   }
 }
@@ -292,14 +307,7 @@ async function loadInitialData() {
     const roleDropdown = document.getElementById("topbarRoleSelect");
     if (roleDropdown) roleDropdown.value = state.currentRole;
 
-    // 3. Automatically seed demo data if fresh session
-    const gaps = await API.getSkillGaps(state.currentUserId);
-    const hasAttempts = gaps.some(g => g.attempts > 0);
-    if (!hasAttempts) {
-      await API.seedDemoData(state.currentUserId);
-    }
-
-    // 4. Refresh all dashboard widgets and views
+    // 3. Refresh all dashboard widgets and views based on real user data
     await refreshAllViews();
   } catch (err) {
     console.error("Initialization error:", err);
@@ -1163,20 +1171,33 @@ function initProfileView() {
   renderProfileSliders();
 }
 
-function renderProfileSliders() {
+async function renderProfileSliders() {
   const container = document.getElementById("profileSkillSlidersContainer");
   if (!container) return;
+  container.innerHTML = "<div style='color:var(--text-muted); font-size:13px;'>Loading skills matrix...</div>";
+
+  let savedPriors = {};
+  try {
+    savedPriors = await API.getUserSkills(state.currentUserId) || {};
+  } catch (e) {
+    console.warn("Could not load skill priors:", e);
+  }
+
   container.innerHTML = "";
 
   SKILL_CATEGORIES.forEach(cat => {
+    const currentVal = (savedPriors && savedPriors[cat.id] !== undefined)
+      ? Math.round(savedPriors[cat.id])
+      : cat.defaultVal;
+
     const item = document.createElement("div");
     item.className = "profile-slider-item";
     item.innerHTML = `
       <div class="profile-slider-header">
         <span>${cat.icon} ${cat.title}</span>
-        <span id="sliderVal_${cat.id}" style="color:var(--accent-cyan); font-weight:700;">${cat.defaultVal}%</span>
+        <span id="sliderVal_${cat.id}" style="color:var(--accent-cyan); font-weight:700;">${currentVal}%</span>
       </div>
-      <input type="range" min="0" max="100" value="${cat.defaultVal}" class="profile-range-input" oninput="document.getElementById('sliderVal_${cat.id}').innerText = this.value + '%'">
+      <input type="range" min="0" max="100" value="${currentVal}" id="range_${cat.id}" class="profile-range-input" oninput="document.getElementById('sliderVal_${cat.id}').innerText = this.value + '%'">
     `;
     container.appendChild(item);
   });
@@ -1192,13 +1213,27 @@ async function saveProfileChanges() {
   const newRole = document.getElementById("profileRoleSelect")?.value || state.currentRole;
   state.currentRole = newRole;
   await API.updateTargetRole(state.currentUserId, newRole);
+
+  // Collect and persist real slider values
+  const skillsPayload = {};
+  SKILL_CATEGORIES.forEach(cat => {
+    const slider = document.getElementById(`range_${cat.id}`);
+    if (slider) {
+      skillsPayload[cat.id] = parseFloat(slider.value);
+    }
+  });
+
+  if (Object.keys(skillsPayload).length > 0) {
+    await API.saveUserSkills(state.currentUserId, skillsPayload);
+  }
+
   await refreshAllViews();
   updateUserInfoUI();
 
   const userBadge = document.getElementById("profileUserRoleBadge");
   if (userBadge) userBadge.innerText = state.roles[newRole]?.title || newRole;
 
-  showToast(`Profile updated successfully for ${newName || "user"}!`);
+  showToast(`Profile & skill mastery matrix updated successfully for ${newName || "user"}!`);
 }
 
 // ── Sign Out ─────────────────────────────────────────────────────────────────
@@ -1842,6 +1877,25 @@ function handleAptitudeSubmit() {
     solBox.style.display = "block";
   }
 
+  // Record genuine response to backend
+  try {
+    API.logDirectResponse({
+      user_id: state.currentUserId,
+      question_id: q.id || `apt_${aptState.currentCategory}_${aptState.currentIndex}`,
+      selected_index: aptState.selectedIndex,
+      is_correct: isCorrect,
+      response_time_sec: Math.max(4.0, aptState.timerSeconds || 15.0),
+      subtopic: q.subtopic || "Aptitude & Probability",
+      topic: APTITUDE_DATA.categories[aptState.currentCategory]?.name || "Quantitative Reasoning",
+      skill: "Aptitude",
+      difficulty: q.difficulty || 2
+    }).then(() => {
+      refreshAllViews();
+    }).catch(err => console.warn("Aptitude backend logging warning:", err));
+  } catch (err) {
+    console.warn("Aptitude logging failed:", err);
+  }
+
   // Toggle Action Buttons
   const submitBtn = document.getElementById("aptSubmitBtn");
   if (submitBtn) submitBtn.style.display = "none";
@@ -1849,7 +1903,7 @@ function handleAptitudeSubmit() {
   const nextBtn = document.getElementById("aptNextBtn");
   if (nextBtn) nextBtn.style.display = "inline-block";
 
-  showToast(isCorrect ? "🎯 Excellent! Correct answer." : "💡 Solution explained below.");
+  showToast(isCorrect ? "🎯 Excellent! Correct answer recorded." : "💡 Solution recorded & explained below.");
 }
 
 function handleAptitudeNext() {

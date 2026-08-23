@@ -27,6 +27,36 @@ const API = {
     return await res.json();
   },
 
+  async clearUserData(userId) {
+    const res = await fetch(`${API_BASE}/api/analytics/clear-data/${userId}`, {
+      method: "POST"
+    });
+    return await res.json();
+  },
+
+  async logDirectResponse(payload) {
+    const res = await fetch(`${API_BASE}/api/assessment/log-response`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  },
+
+  async saveUserSkills(userId, skillsPayload) {
+    const res = await fetch(`${API_BASE}/api/profile/${userId}/skills`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(skillsPayload)
+    });
+    return await res.json();
+  },
+
+  async getUserSkills(userId) {
+    const res = await fetch(`${API_BASE}/api/profile/${userId}/skills`);
+    return await res.json();
+  },
+
   async getReadinessReport(userId, targetRole = null) {
     const url = targetRole 
       ? `${API_BASE}/api/analytics/readiness/${userId}?target_role=${targetRole}`

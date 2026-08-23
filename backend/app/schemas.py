@@ -59,6 +59,18 @@ class AnswerSubmissionRequest(BaseModel):
     selected_index: int
     response_time_sec: float
 
+class DirectLogRequest(BaseModel):
+    user_id: str
+    question_id: str
+    selected_index: int
+    is_correct: bool
+    response_time_sec: float
+    subtopic: str
+    topic: Optional[str] = "General"
+    skill: Optional[str] = "Aptitude"
+    difficulty: Optional[int] = 2
+
+
 class AnswerEvaluationResponse(BaseModel):
     is_correct: bool
     correct_index: int

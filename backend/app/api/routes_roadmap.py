@@ -1,7 +1,4 @@
-import uuid
-from typing import List
-from fastapi import APIRouter, HTTPException
-from ..database import get_supabase
+from ..database import get_supabase, db_get_user, db_get_user_responses
 from ..schemas import LearningRoadmapResponse, RoadmapStepSchema
 from ..engine.recommender import generate_personalized_roadmap
 from ..data.learning_resources import get_resource_for_subtopic
@@ -10,16 +7,9 @@ router = APIRouter(prefix="/api/roadmap", tags=["Learning Roadmap"])
 
 @router.get("/generate/{user_id}", response_model=LearningRoadmapResponse)
 def get_or_generate_roadmap(user_id: str, regenerate: bool = False):
-    try:
-        sb = get_supabase()
-        user_result = sb.table("users").select("*").eq("id", user_id).execute()
-        user = user_result.data[0] if user_result.data else None
-        target_role = user["target_role"] if user else "java_developer"
-        responses_result = sb.table("response_logs").select("*").eq("user_id", user_id).execute()
-        responses = responses_result.data or []
-    except Exception:
-        target_role = "java_developer"
-        responses = []
+    user = db_get_user(user_id)
+    target_role = user["target_role"] if user else "java_developer"
+    responses = db_get_user_responses(user_id)
 
     # Generate new dynamic roadmap
     raw_steps = generate_personalized_roadmap(user_id, target_role, responses)

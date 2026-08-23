@@ -123,10 +123,11 @@ def analyze_all_skill_gaps(
         
     results = {}
     for subtopic, meta in subtopic_to_meta.items():
-        prior = user_priors.get(subtopic, 50.0)
+        prior = user_priors.get(subtopic, user_priors.get(meta["skill"], 50.0))
         diag = compute_subtopic_mastery(responses, subtopic, prior)
         diag["skill"] = meta["skill"]
         diag["topic"] = meta["topic"]
         results[subtopic] = diag
         
     return results
+

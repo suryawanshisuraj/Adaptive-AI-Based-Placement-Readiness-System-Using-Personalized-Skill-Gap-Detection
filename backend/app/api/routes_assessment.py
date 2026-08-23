@@ -1,10 +1,10 @@
 import uuid
 from typing import Optional
 from fastapi import APIRouter, HTTPException
-from ..database import get_supabase
+from ..database import get_supabase, db_insert_response_log, db_get_user_responses, db_get_user
 from ..schemas import (
     StartAssessmentRequest, AnswerSubmissionRequest,
-    AnswerEvaluationResponse, QuestionClientView
+    AnswerEvaluationResponse, QuestionClientView, DirectLogRequest
 )
 from ..data.question_bank import get_question_by_id, get_all_questions
 from ..engine.skill_gap import compute_subtopic_mastery, calculate_response_time_factor
@@ -20,29 +20,9 @@ _local_logs = {}
 @router.post("/start")
 def start_assessment_session(payload: StartAssessmentRequest):
     session_id = f"sess_{uuid.uuid4().hex[:8]}"
-    target_role = payload.target_role or "java_developer"
-    responses = []
-
-    try:
-        sb = get_supabase()
-        user_result = sb.table("users").select("*").eq("id", payload.user_id).execute()
-        user = user_result.data[0] if user_result.data else None
-        if user and not payload.target_role:
-            target_role = user.get("target_role", "java_developer")
-
-        sb.table("assessment_sessions").insert({
-            "id": session_id,
-            "user_id": payload.user_id,
-            "session_type": payload.session_type,
-            "target_role": target_role,
-            "status": "in_progress",
-            "total_questions": payload.num_questions
-        }).execute()
-
-        responses_result = sb.table("response_logs").select("*").eq("user_id", payload.user_id).execute()
-        responses = responses_result.data or []
-    except Exception:
-        pass
+    user = db_get_user(payload.user_id)
+    target_role = payload.target_role or (user["target_role"] if user else "java_developer")
+    responses = db_get_user_responses(payload.user_id)
 
     _local_sessions[session_id] = {
         "id": session_id,
@@ -91,14 +71,6 @@ def submit_answer(payload: AnswerSubmissionRequest):
         "total_questions": 8
     })
 
-    try:
-        sb = get_supabase()
-        session_result = sb.table("assessment_sessions").select("*").eq("id", payload.session_id).execute()
-        if session_result.data:
-            session = session_result.data[0]
-    except Exception:
-        pass
-
     target_role = session.get("target_role", "java_developer")
     log_id = f"log_{uuid.uuid4().hex[:8]}"
 
@@ -116,21 +88,18 @@ def submit_answer(payload: AnswerSubmissionRequest):
         "difficulty": q_data["difficulty"]
     }
 
+    # Persist log to SQLite + Supabase
+    db_insert_response_log(log_entry)
+
     if payload.session_id not in _local_logs:
         _local_logs[payload.session_id] = []
     _local_logs[payload.session_id].append(log_entry)
 
-    try:
-        sb = get_supabase()
-        sb.table("response_logs").insert(log_entry).execute()
-    except Exception:
-        pass
-
-    all_user_responses = _local_logs.get(payload.session_id, [])
+    all_user_responses = db_get_user_responses(payload.user_id)
     subtopic_diag = compute_subtopic_mastery(all_user_responses, q_data["subtopic"], 50.0)
     new_mastery = subtopic_diag["mastery_score"]
 
-    session_answered_ids = [r["question_id"] for r in all_user_responses]
+    session_answered_ids = [r["question_id"] for r in _local_logs.get(payload.session_id, [])]
     total_limit = session.get("total_questions", 8)
 
     if len(session_answered_ids) >= total_limit:
@@ -213,3 +182,31 @@ def get_session_summary(session_id: str):
         "accuracy": round(accuracy, 1),
         "readiness_report": readiness_rep
     }
+
+
+@router.post("/log-response")
+def log_direct_response(payload: DirectLogRequest):
+    """
+    Directly logs a practice or aptitude question attempt to record genuine user performance.
+    """
+    log_id = f"log_{uuid.uuid4().hex[:8]}"
+    log_entry = {
+        "id": log_id,
+        "session_id": "sess_aptitude_hub",
+        "user_id": payload.user_id,
+        "question_id": payload.question_id,
+        "selected_index": payload.selected_index,
+        "is_correct": 1 if payload.is_correct else 0,
+        "response_time_sec": payload.response_time_sec,
+        "subtopic": payload.subtopic,
+        "topic": payload.topic or "General",
+        "skill": payload.skill or "Aptitude",
+        "difficulty": payload.difficulty or 2
+    }
+    db_insert_response_log(log_entry)
+    return {
+        "status": "success",
+        "log_id": log_id,
+        "message": "Response recorded successfully."
+    }
+

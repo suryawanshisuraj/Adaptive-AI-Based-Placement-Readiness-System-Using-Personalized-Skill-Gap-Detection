@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5-Day Dynamic Remediation Roadmap — Adaptive AI Placement</title>
+  <meta name="description" content="A personalized 5-day structured remediation plan targeting your highest impact skill gaps with daily micro-lessons and drills.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css?v=4.0">
+  <style>
+    body {
+      overflow-y: auto !important;
+      display: block !important;
+      background-color: #f8fafc;
+    }
+    .roadmap-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .roadmap-container {
+      max-width: 960px;
+      margin: 32px auto 60px;
+      padding: 0 20px;
+    }
+    .roadmap-hero-banner {
+      background: linear-gradient(135deg, #1e1b4b, #4338ca);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      color: #ffffff;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .day-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-card);
+      transition: all var(--transition-smooth);
+      position: relative;
+    }
+    .day-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-card-hover);
+    }
+    .day-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .day-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      background: #eef2ff;
+      color: var(--primary);
+    }
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .task-item:last-child {
+      border-bottom: none;
+    }
+    .task-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      margin-top: 2px;
+    }
+    .task-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .task-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="roadmap-header">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px;">🧠</div>
+        <span style="font-weight: 800; font-size: 15px; color: var(--text-primary);">Adaptive AI</span>
+      </a>
+      <span style="color: var(--border-color);">/</span>
+      <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">5-Day Dynamic Roadmap</span>
+    </div>
+
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <a href="/" class="btn-secondary" style="padding: 6px 14px; font-size: 13px; text-decoration: none;">Exit to Dashboard</a>
+      <a href="/assessment" class="btn-primary" style="padding: 6px 16px; font-size: 13px; text-decoration: none;">Launch Practice Drills</a>
+    </div>
+  </header>
+
+  <main class="roadmap-container">
+    
+    <!-- Hero Banner -->
+    <div class="roadmap-hero-banner">
+      <div>
+        <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #a5b4fc; letter-spacing: 0.5px;">Personalized Remediation</span>
+        <h2 style="font-size: 24px; font-weight: 800; margin: 4px 0 8px;">Target: Software Development Engineer</h2>
+        <p style="font-size: 13.5px; color: #e0e7ff; line-height: 1.5; margin: 0; max-width: 580px;">
+          Sequenced by maximum return on placement readiness: $(Weight_{role} \times Gap_{subtopic})$. Complete each day's drills to eliminate critical weak points.
+        </p>
+      </div>
+      <div style="text-align: right; background: rgba(255, 255, 255, 0.12); padding: 16px 20px; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.2);">
+        <div id="progressPercent" style="font-size: 32px; font-weight: 800; color: #ffffff;">40%</div>
+        <div style="font-size: 12px; color: #e0e7ff; font-weight: 600;">Roadmap Completed</div>
+      </div>
+    </div>
+
+    <!-- Day 1 -->
+    <div class="day-card">
+      <div class="day-header">
+        <div class="day-badge">📅 DAY 1: HIGHEST IMPACT GAP</div>
+        <span style="font-size: 12.5px; color: var(--accent-emerald); font-weight: 700;">Completed</span>
+      </div>
+      <h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+        SQL Window Functions & Multi-Table Query Optimization
+      </h3>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+        Master <code>RANK()</code>, <code>DENSE_RANK()</code>, <code>ROW_NUMBER()</code>, and partition frames to fix your detected query ranking gap.
+      </p>
+
+      <div class="task-item">
+        <input type="checkbox" class="task-checkbox" checked onchange="updateProgress()">
+        <div>
+          <div class="task-title">Review Window Function Mechanics & Pitfall Cheatsheet</div>
+          <div class="task-desc">Understand when to use PARTITION BY and sliding boundary clauses.</div>
+        </div>
+      </div>
+      <div class="task-item">
+        <input type="checkbox" class="task-checkbox" checked onchange="updateProgress()">
+        <div>
+          <div class="task-title">Solve 5 Targeted Window Function Drills</div>
+          <div class="task-desc">Score ≥ 80% on adaptive SQL practice arena.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day 2 -->
+    <div class="day-card">
+      <div class="day-header">
+        <div class="day-badge">📅 DAY 2: CORE ALGORITHMS</div>
+        <span style="font-size: 12.5px; color: var(--primary); font-weight: 700;">In Progress</span>
+      </div>
+      <h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+        Dynamic Programming & State Compression
+      </h3>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+        Transition from exponential recursion to memoization and space-optimized 1D tabulations.
+      </p>
+
+      <div class="task-item">
+        <input type="checkbox" class="task-checkbox" checked onchange="updateProgress()">
+        <div>
+          <div class="task-title">0/1 Knapsack & Subset Sum Tabulation Guide</div>
+          <div class="task-desc">Master reverse iteration pattern for 1D state compression.</div>
+        </div>
+      </div>
+      <div class="task-item">
+        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+        <div>
+          <div class="task-title">Complete 4 Adaptive DP Assessment Problems</div>
+          <div class="task-desc">Practice on Arena under 12-minute time constraints.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day 3 -->
+    <div class="day-card">
+      <div class="day-header">
+        <div class="day-badge">📅 DAY 3: OBJECT ORIENTED DESIGN</div>
+        <span style="font-size: 12.5px; color: var(--text-muted); font-weight: 600;">Upcoming</span>
+      </div>
+      <h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+        Java Concurrency & Garbage Collection Mechanics
+      </h3>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+        Demystify volatile, Atomic variables, ExecutorService thread pools, and GC generations.
+      </p>
+
+      <div class="task-item">
+        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+        <div>
+          <div class="task-title">Study Memory Visibility & Thread Safety Patterns</div>
+          <div class="task-desc">Analyze synchronized vs ReentrantLock trade-offs.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day 4 & 5 -->
+    <div class="day-card">
+      <div class="day-header">
+        <div class="day-badge">📅 DAY 4 & 5: FULL PLACEMENT SPRINT</div>
+        <span style="font-size: 12.5px; color: var(--text-muted); font-weight: 600;">Upcoming</span>
+      </div>
+      <h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+        AI Mock Interview & Viva Defense Simulation
+      </h3>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">
+        Execute full technical mock rounds and calibrate your resume ATS score before final placement drives.
+      </p>
+
+      <div class="task-item">
+        <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+        <div>
+          <div class="task-title">Complete 1 Full AI Mock Interview Studio Session</div>
+          <div class="task-desc">Target rubric score ≥ 85/100 across technical & communication pillars.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    function updateProgress() {
+      const boxes = document.querySelectorAll('.task-checkbox');
+      const checked = document.querySelectorAll('.task-checkbox:checked');
+      const pct = Math.round((checked.length / boxes.length) * 100);
+      document.getElementById('progressPercent').textContent = `${pct}%`;
+    }
+  </script>
+
+</body>
+</html>

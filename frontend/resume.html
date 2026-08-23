@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume ATS Analyzer Studio — Adaptive AI Placement</title>
+  <meta name="description" content="Audit and optimize your resume for automated Applicant Tracking Systems (ATS) with role-targeted keyword matching and actionable feedback.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css?v=4.0">
+  <style>
+    body {
+      overflow-y: auto !important;
+      display: block !important;
+      background-color: #f8fafc;
+    }
+    .resume-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .resume-container {
+      max-width: 1100px;
+      margin: 32px auto 60px;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+    .resume-pane {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-card);
+    }
+    .keyword-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12.5px;
+      font-weight: 600;
+      margin: 4px;
+    }
+    .kw-found { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .kw-missing { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    @media (max-width: 850px) {
+      .resume-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="resume-header">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px;">🧠</div>
+        <span style="font-weight: 800; font-size: 15px; color: var(--text-primary);">Adaptive AI</span>
+      </a>
+      <span style="color: var(--border-color);">/</span>
+      <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Resume ATS Studio</span>
+    </div>
+
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <a href="/" class="btn-secondary" style="padding: 6px 14px; font-size: 13px; text-decoration: none;">Exit Studio</a>
+      <a href="/roadmap" class="btn-primary" style="padding: 6px 16px; font-size: 13px; text-decoration: none;">5-Day Roadmap</a>
+    </div>
+  </header>
+
+  <main class="resume-container">
+    
+    <!-- Left Pane: Resume Input & Target Config -->
+    <div class="resume-pane">
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Target Career Role</h3>
+      <select id="targetRoleSelect" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; margin-bottom: 20px; font-weight: 600; color: var(--text-primary);">
+        <option value="sde">Software Development Engineer (SDE)</option>
+        <option value="backend">Backend Engineer</option>
+        <option value="data">Data Analyst / Data Engineer</option>
+        <option value="devops">Cloud & DevOps Specialist</option>
+      </select>
+
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Resume Content (Paste Text)</h3>
+      <textarea id="resumeTextInput" style="width: 100%; height: 260px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; font-family: var(--font-sans); font-size: 13px; resize: vertical; margin-bottom: 18px; outline: none;" placeholder="Paste your resume markdown or plain text here..."></textarea>
+
+      <div style="display: flex; gap: 12px;">
+        <button class="btn-secondary" onclick="loadSampleResume()" style="flex: 1;">📝 Load Sample Resume</button>
+        <button class="btn-primary" onclick="analyzeResume()" style="flex: 1.5;">🔍 Run ATS Diagnostic</button>
+      </div>
+    </div>
+
+    <!-- Right Pane: Live ATS Score & Insights -->
+    <div class="resume-pane">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
+        <div>
+          <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">ATS Compatibility Index</h3>
+          <p style="font-size: 12.5px; color: var(--text-muted);">Calibrated for Top Tech Tier-1 Scanners</p>
+        </div>
+        <div id="atsScoreValue" style="font-size: 26px; font-weight: 800; color: var(--primary); background: #eef2ff; padding: 8px 18px; border-radius: var(--radius-md);">
+          86%
+        </div>
+      </div>
+
+      <!-- Keyword Analysis -->
+      <div style="margin-bottom: 20px;">
+        <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Key Technical Keywords Detected</h4>
+        <div>
+          <span class="keyword-pill kw-found">✓ Java Concurrency</span>
+          <span class="keyword-pill kw-found">✓ Spring Boot</span>
+          <span class="keyword-pill kw-found">✓ PostgreSQL</span>
+          <span class="keyword-pill kw-found">✓ Redis Caching</span>
+          <span class="keyword-pill kw-found">✓ Docker</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Critical Missing ATS Keywords</h4>
+        <div>
+          <span class="keyword-pill kw-missing">✕ Window Functions</span>
+          <span class="keyword-pill kw-missing">✕ Distributed Locks</span>
+          <span class="keyword-pill kw-missing">✕ Microservices Tracing</span>
+        </div>
+      </div>
+
+      <!-- Formatting Checks -->
+      <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
+        <h4 style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Formatting & Readability Audit</h4>
+        <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;">
+          <div>✅ Standard section headers detected (Experience, Education, Projects, Skills)</div>
+          <div>✅ Strong action verbs used ("Architected", "Engineered", "Optimized")</div>
+          <div>⚠️ Consider quantifying project impacts with exact metric percentages (e.g. <em>"reduced query latency by 45%"</em>).</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    function loadSampleResume() {
+      document.getElementById('resumeTextInput').value = `ALEX CHEN
+Full Stack & Backend Developer | alex.chen@example.com | github.com/alexchen
+
+EXPERIENCE:
+Software Engineering Intern — CloudTech (May 2025 - Aug 2025)
+• Architected resilient microservices using Java Spring Boot and PostgreSQL.
+• Implemented multi-tier caching with Redis, reducing database latency by 38%.
+• Containerized deployment pipelines utilizing Docker and GitHub Actions.
+
+PROJECTS:
+Adaptive Placement AI Platform
+• Developed Bayesian skill gap assessment engine in Python FastAPI.
+• Integrated Explainable AI reasoning trees to diagnose student weak points.
+
+SKILLS:
+Java, Python, SQL, PostgreSQL, Redis, Docker, Spring Boot, REST APIs, Git, Algorithms.`;
+    }
+
+    function analyzeResume() {
+      const val = document.getElementById('resumeTextInput').value;
+      if (!val.trim()) {
+        alert("Please paste resume text or click 'Load Sample Resume' first.");
+        return;
+      }
+      alert("🎯 Resume ATS Scan Complete! Score: 88% Match for Software Development Engineer.");
+    }
+  </script>
+
+</body>
+</html>

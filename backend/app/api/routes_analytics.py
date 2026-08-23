@@ -12,15 +12,22 @@ from ..data.question_bank import get_all_questions
 router = APIRouter(prefix="/api/analytics", tags=["Analytics & XAI"])
 
 def _get_user_responses(user_id: str) -> List[Dict[str, Any]]:
-    sb = get_supabase()
-    result = sb.table("response_logs").select("*").eq("user_id", user_id).execute()
-    return result.data or []
+    try:
+        sb = get_supabase()
+        result = sb.table("response_logs").select("*").eq("user_id", user_id).execute()
+        return result.data or []
+    except Exception as e:
+        print(f"[Analytics Warning] Could not fetch response_logs: {e}")
+        return []
 
 @router.get("/readiness/{user_id}", response_model=PlacementReadinessReport)
 def get_readiness_report(user_id: str, target_role: str = None):
-    sb = get_supabase()
-    user_result = sb.table("users").select("*").eq("id", user_id).execute()
-    user = user_result.data[0] if user_result.data else None
+    try:
+        sb = get_supabase()
+        user_result = sb.table("users").select("*").eq("id", user_id).execute()
+        user = user_result.data[0] if user_result.data else None
+    except Exception:
+        user = None
     effective_role = target_role or (user["target_role"] if user else "java_developer")
     responses = _get_user_responses(user_id)
     report = calculate_placement_readiness(user_id, effective_role, responses)
@@ -28,9 +35,12 @@ def get_readiness_report(user_id: str, target_role: str = None):
 
 @router.get("/xai/{user_id}", response_model=XAIExplanation)
 def get_xai_breakdown(user_id: str, target_role: str = None):
-    sb = get_supabase()
-    user_result = sb.table("users").select("*").eq("id", user_id).execute()
-    user = user_result.data[0] if user_result.data else None
+    try:
+        sb = get_supabase()
+        user_result = sb.table("users").select("*").eq("id", user_id).execute()
+        user = user_result.data[0] if user_result.data else None
+    except Exception:
+        user = None
     effective_role = target_role or (user["target_role"] if user else "java_developer")
     responses = _get_user_responses(user_id)
     xai_data = generate_xai_explanation(user_id, effective_role, responses)
@@ -44,9 +54,12 @@ def get_all_gaps(user_id: str):
 
 @router.get("/role-comparison/{user_id}")
 def get_role_comparison(user_id: str):
-    sb = get_supabase()
-    user_result = sb.table("users").select("*").eq("id", user_id).execute()
-    user = user_result.data[0] if user_result.data else None
+    try:
+        sb = get_supabase()
+        user_result = sb.table("users").select("*").eq("id", user_id).execute()
+        user = user_result.data[0] if user_result.data else None
+    except Exception:
+        user = None
     current_role = user["target_role"] if user else "java_developer"
     responses = _get_user_responses(user_id)
 

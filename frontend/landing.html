@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adaptive AI Placement Readiness — Personalized Skill-Gap Detection & Career Intelligence</title>
+  <meta name="description" content="An intelligent research-grade diagnostic AI platform to accelerate student placement readiness with granular skill-gap detection, role-weighted scoring, and dynamic 5-day roadmaps.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css?v=4.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      overflow-y: auto !important;
+      display: block !important;
+      background-color: #f8fafc;
+    }
+    
+    /* Landing Navbar */
+    .landing-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .landing-nav .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .landing-nav .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      list-style: none;
+    }
+    .landing-nav .nav-links a {
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 14px;
+      transition: color var(--transition-fast);
+    }
+    .landing-nav .nav-links a:hover {
+      color: var(--primary);
+    }
+    .landing-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Hero Section */
+    .landing-hero {
+      position: relative;
+      padding: 80px 32px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(79, 70, 229, 0.08);
+      border: 1px solid rgba(79, 70, 229, 0.2);
+      border-radius: var(--radius-full);
+      color: var(--primary);
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .hero-badge span.pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(79, 70, 229, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+    }
+    .hero-title {
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--text-primary);
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+    }
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #4f46e5 0%, #0284c7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      font-size: 17px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 32px;
+      max-width: 580px;
+    }
+    .hero-cta-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .hero-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+    }
+    .hero-stat-item h4 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    .hero-stat-item p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Hero Preview Widget */
+    .hero-preview-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+      position: relative;
+    }
+    .hero-preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .role-badge-pill {
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .dial-center {
+      text-align: center;
+      padding: 20px 0;
+    }
+    .dial-score-big {
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -1px;
+    }
+    .dial-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Feature Sections */
+    .section-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 32px;
+    }
+    .section-header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 56px;
+    }
+    .section-tag {
+      color: var(--primary);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 14px;
+    }
+    .section-desc {
+      font-size: 15.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Feature Grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: all var(--transition-smooth);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card-hover);
+      border-color: var(--primary-light);
+    }
+    .feature-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .feature-link {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: gap 0.2s;
+    }
+    .feature-link:hover {
+      gap: 10px;
+    }
+
+    /* Interactive Role Matrix */
+    .role-matrix-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      box-shadow: var(--shadow-card);
+    }
+    .role-btn-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .role-btn-tab {
+      padding: 10px 18px;
+      background: #f1f5f9;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-full);
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .role-btn-tab.active, .role-btn-tab:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+    .role-content-view {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: center;
+    }
+
+    /* CTA Section */
+    .cta-banner {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+      border-radius: var(--radius-xl);
+      padding: 64px 48px;
+      color: #ffffff;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      margin: 40px auto;
+      max-width: 1200px;
+    }
+    .cta-banner h2 {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+    .cta-banner p {
+      font-size: 17px;
+      color: #e0e7ff;
+      max-width: 600px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    .cta-btn-white {
+      background: #ffffff;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 32px;
+      border-radius: var(--radius-full);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transition: all var(--transition-smooth);
+    }
+    .cta-btn-white:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      background: #f8fafc;
+    }
+
+    /* Footer */
+    .landing-footer {
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+      padding: 48px 32px 32px;
+    }
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    .footer-col h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .footer-col ul li a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13.5px;
+      transition: color var(--transition-fast);
+    }
+    .footer-col ul li a:hover {
+      color: var(--primary);
+    }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .landing-hero {
+        grid-template-columns: 1fr;
+        padding: 40px 20px;
+      }
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+      .role-content-view {
+        grid-template-columns: 1fr;
+      }
+      .footer-content {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="landing-nav">
+    <a href="/landing" class="brand">
+      <div class="logo-icon" style="width: 38px; height: 38px; background: linear-gradient(135deg, #4f46e5, #0284c7); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px;">🧠</div>
+      <div>
+        <h1 style="font-size: 16px; font-weight: 800; color: var(--text-primary); line-height: 1.1;">Adaptive AI</h1>
+        <p style="font-size: 10.5px; color: var(--primary); font-weight: 600; text-transform: uppercase;">Placement Readiness</p>
+      </div>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#roles">Job Roles</a></li>
+      <li><a href="/assessment">Practice Arena</a></li>
+      <li><a href="/interview">AI Interview</a></li>
+      <li><a href="/resume">ATS Analyzer</a></li>
+      <li><a href="/roadmap">5-Day Roadmap</a></li>
+      <li><a href="/about">Research & Methodology</a></li>
+    </ul>
+
+    <div class="landing-nav-actions">
+      <a href="/auth" class="btn-secondary" style="padding: 8px 16px; font-size: 13.5px; text-decoration: none; border-radius: var(--radius-sm);">Sign In</a>
+      <a href="/" class="btn-primary" style="padding: 8px 18px; font-size: 13.5px; text-decoration: none; border-radius: var(--radius-sm);">Launch Workspace</a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="landing-hero">
+    <div>
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        <span>Adaptive Bayesian Placement AI Engine v2.4</span>
+      </div>
+      <h1 class="hero-title">
+        Accelerate Your Career With <span class="gradient-text">Personalized Skill-Gap AI</span>
+      </h1>
+      <p class="hero-desc">
+        Stop practicing generic question banks. Our research-backed diagnostic engine evaluates exact subtopic gaps, adjusts readiness by target job role weights, and constructs dynamic 5-day remediation sprints.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="/assessment" class="btn-primary" style="padding: 14px 28px; font-size: 15px; text-decoration: none; border-radius: var(--radius-full); box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);">
+          <span>⚡ Start Free Diagnostic Test</span>
+        </a>
+        <a href="/about" class="btn-secondary" style="padding: 14px 24px; font-size: 15px; text-decoration: none; border-radius: var(--radius-full);">
+          <span>🔬 View Research Proof</span>
+        </a>
+      </div>
+
+      <div class="hero-stats-row">
+        <div class="hero-stat-item">
+          <h4>80+</h4>
+          <p>Adaptive Questions</p>
+        </div>
+        <div class="hero-stat-item">
+          <h4>94.2%</h4>
+          <p>Readiness Accuracy</p>
+        </div>
+        <div class="hero-stat-item">
+          <h4>0.84</h4>
+          <p>Cohen's <em>d</em> Effect Size</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Preview Interactive Card -->
+    <div class="hero-preview-card">
+      <div class="hero-preview-header">
+        <div>
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Diagnostic Index</span>
+          <h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary); margin-top: 2px;">Software Development Engineer</h3>
+        </div>
+        <span class="role-badge-pill">High Readiness</span>
+      </div>
+
+      <div class="dial-center">
+        <div class="dial-score-big">82.4%</div>
+        <div class="dial-label">Weighted Placement Index</div>
+      </div>
+
+      <div style="background: #f8fafc; border-radius: var(--radius-md); padding: 16px; margin-top: 16px; border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
+          <span style="color: var(--text-secondary); font-weight: 600;">Data Structures & Algos (35%)</span>
+          <span style="color: var(--accent-emerald); font-weight: 700;">88% Match</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
+          <span style="color: var(--text-secondary); font-weight: 600;">System Design & Java (25%)</span>
+          <span style="color: var(--accent-indigo); font-weight: 700;">84% Match</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+          <span style="color: var(--text-secondary); font-weight: 600;">SQL & Relational DBs (20%)</span>
+          <span style="color: var(--accent-amber); font-weight: 700;">72% Match</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; text-align: center;">
+        <a href="/" style="font-size: 13px; color: var(--primary); font-weight: 600; text-decoration: none;">Explore Full Interactive Dashboard →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Features Grid -->
+  <section id="features" class="section-container">
+    <div class="section-header">
+      <div class="section-tag">Enterprise & Academic Grade</div>
+      <h2 class="section-title">Engineered to Guarantee Placement Readiness</h2>
+      <p class="section-desc">Six integrated intelligence modules designed to transform weak spots into competitive advantages.</p>
+    </div>
+
+    <div class="feature-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: #eef2ff; color: #4f46e5;">🎯</div>
+        <h3>Adaptive Practice Arena</h3>
+        <p>Dynamic Bayesian difficulty scaling. Evaluates response latency penalties to separate confident mastery from lucky guesses.</p>
+        <a href="/assessment" class="feature-link">Launch Practice Arena →</a>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: #f0fdf4; color: #059669;">🔍</div>
+        <h3>Explainable AI (XAI)</h3>
+        <p>Clear decision-reasoning trees explaining why you received a score, what critical concepts failed, and exact fixes.</p>
+        <a href="/about" class="feature-link">View XAI Architecture →</a>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: #fdf2f8; color: #db2777;">🗺️</div>
+        <h3>5-Day Dynamic Roadmap</h3>
+        <p>Automated priority sequencing that computes $(Weight_{role} \times Gap_{subtopic})$ into focused daily micro-sprints.</p>
+        <a href="/roadmap" class="feature-link">View 5-Day Roadmap →</a>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: #eff6ff; color: #0284c7;">🎙️</div>
+        <h3>AI Mock Interview Studio</h3>
+        <p>Interactive behavioral and technical interview simulator with instant rubric feedback on depth, problem solving, and clarity.</p>
+        <a href="/interview" class="feature-link">Enter Interview Room →</a>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: #faf5ff; color: #7c3aed;">📄</div>
+        <h3>Resume ATS Analyzer</h3>
+        <p>Live resume scanning against target career roles. Pinpoints missing industry keywords, formatting errors, and action verbs.</p>
+        <a href="/resume" class="feature-link">Scan Your Resume →</a>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background: #fffbeb; color: #d97706;">🔬</div>
+        <h3>Research & Viva Benchmarking</h3>
+        <p>Empirical A/B validation comparing Fixed Question Banks vs Adaptive AI with paired t-tests, p-values, and effect size metrics.</p>
+        <a href="/about" class="feature-link">Read Methodology & Paper →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Role Matrix Section -->
+  <section id="roles" class="section-container" style="background: #ffffff; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); max-width: 100%;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <div class="section-header">
+        <div class="section-tag">Role-Weighted Index</div>
+        <h2 class="section-title">Calibrated For Top Tech Career Paths</h2>
+        <p class="section-desc">Every job role prioritizes different competency vectors. See how the placement engine weights each domain.</p>
+      </div>
+
+      <div class="role-matrix-box">
+        <div class="role-btn-tabs">
+          <button class="role-btn-tab active" onclick="switchRoleView('sde')">Software Development Engineer</button>
+          <button class="role-btn-tab" onclick="switchRoleView('backend')">Backend Engineer</button>
+          <button class="role-btn-tab" onclick="switchRoleView('data')">Data Analyst / Engineer</button>
+          <button class="role-btn-tab" onclick="switchRoleView('devops')">Cloud & DevOps Specialist</button>
+        </div>
+
+        <div id="roleDetailsView" class="role-content-view">
+          <div>
+            <h3 id="roleNameHeading" style="font-size: 24px; font-weight: 800; margin-bottom: 10px; color: var(--text-primary);">Software Development Engineer (SDE)</h3>
+            <p id="roleDescription" style="font-size: 15px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
+              Focuses on core algorithms, object-oriented design patterns, database query optimization, and system design fundamentals.
+            </p>
+            <div id="roleWeightsList" style="display: flex; flex-direction: column; gap: 12px;">
+              <!-- Dynamic weights will render here -->
+            </div>
+          </div>
+
+          <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px;">
+            <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Mathematical Readiness Formula</h4>
+            <div style="font-family: var(--font-mono); background: #ffffff; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 13px; color: var(--primary); margin-bottom: 14px;">
+              Readiness = (∑ W_role,i · S_i) × C_consistency
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+              Consistency multiplier $C_{consistency}$ penalizes erratic answering variance, rewarding candidates with solid conceptual retention across all subtopics.
+            </p>
+            <div style="margin-top: 18px;">
+              <a href="/assessment" class="btn-primary" style="width: 100%; display: inline-flex; justify-content: center; padding: 10px; font-size: 13.5px; text-decoration: none; border-radius: var(--radius-sm);">Test Your SDE Readiness Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="section-container">
+    <div class="cta-banner">
+      <h2>Ready to Guarantee Your Placement Success?</h2>
+      <p>Join students who have eliminated blind spots and accelerated their interview performance with Adaptive AI.</p>
+      <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        <a href="/auth" class="cta-btn-white">Create Free Account 🚀</a>
+        <a href="/" class="btn-secondary" style="color: #ffffff; border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); padding: 14px 28px; border-radius: var(--radius-full); text-decoration: none; font-weight: 600;">Open Workspace</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-content">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+          <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px;">🧠</div>
+          <span style="font-weight: 800; font-size: 16px; color: var(--text-primary);">Adaptive AI System</span>
+        </div>
+        <p style="font-size: 13.5px; color: var(--text-muted); line-height: 1.6; max-width: 320px;">
+          Personalized Skill-Gap Detection, Explainable AI, and Dynamic Placement Readiness Architecture.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Modules</h4>
+        <ul>
+          <li><a href="/assessment">Practice Arena</a></li>
+          <li><a href="/interview">AI Mock Interview</a></li>
+          <li><a href="/resume">ATS Resume Analyzer</a></li>
+          <li><a href="/roadmap">5-Day Roadmap</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="/">Workspace Dashboard</a></li>
+          <li><a href="/about">Research & Viva Lab</a></li>
+          <li><a href="/auth">Sign In / Sign Up</a></li>
+          <li><a href="/404">System Status</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact & Defense</h4>
+        <ul>
+          <li><a href="/about#viva">Viva Defense Notes</a></li>
+          <li><a href="/about#architecture">Architecture Schema</a></li>
+          <li><a href="https://github.com" target="_blank" rel="noopener">GitHub Repository</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 Adaptive AI Placement Readiness System. All rights reserved.</p>
+      <p>Research & Engineering Grade Placement Intelligence</p>
+    </div>
+  </footer>
+
+  <script>
+    const roleData = {
+      sde: {
+        title: "Software Development Engineer (SDE)",
+        desc: "Requires algorithmic rigor, data structures depth, object-oriented principles, and database management.",
+        weights: [
+          { name: "Data Structures & Algorithms", pct: 35, color: "#4f46e5" },
+          { name: "Core Java & OOP Concepts", pct: 25, color: "#0284c7" },
+          { name: "SQL & Database Schema Design", pct: 20, color: "#059669" },
+          { name: "Quantitative Aptitude & Logic", pct: 20, color: "#d97706" }
+        ]
+      },
+      backend: {
+        title: "Backend Engineer",
+        desc: "Prioritizes relational query performance, concurrency, API design, and distributed persistence.",
+        weights: [
+          { name: "SQL & Query Tuning (Window Funcs, Indexing)", pct: 35, color: "#059669" },
+          { name: "Core Java, Concurrency & Garbage Collection", pct: 30, color: "#0284c7" },
+          { name: "Algorithms & Time Complexity", pct: 20, color: "#4f46e5" },
+          { name: "Analytical Problem Solving", pct: 15, color: "#d97706" }
+        ]
+      },
+      data: {
+        title: "Data Analyst / Engineer",
+        desc: "Emphasizes advanced SQL aggregations, window functions, statistical reasoning, and data modeling.",
+        weights: [
+          { name: "Advanced SQL & Data Transformations", pct: 40, color: "#059669" },
+          { name: "Quantitative Aptitude & Statistical Modeling", pct: 30, color: "#d97706" },
+          { name: "Data Structures & Search Algorithms", pct: 15, color: "#4f46e5" },
+          { name: "Programming Foundations & Scripting", pct: 15, color: "#0284c7" }
+        ]
+      },
+      devops: {
+        title: "Cloud & DevOps Specialist",
+        desc: "Combines networking, automation scripting, infrastructure as code, and system reliability.",
+        weights: [
+          { name: "System Architecture & Logic", pct: 30, color: "#7c3aed" },
+          { name: "Database Operations & Indexing", pct: 25, color: "#059669" },
+          { name: "Scripting & OOP Foundations", pct: 25, color: "#0284c7" },
+          { name: "Quantitative & Analytical Reasoning", pct: 20, color: "#d97706" }
+        ]
+      }
+    };
+
+    function switchRoleView(roleKey) {
+      document.querySelectorAll('.role-btn-tab').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      const data = roleData[roleKey];
+      if (!data) return;
+
+      document.getElementById('roleNameHeading').textContent = data.title;
+      document.getElementById('roleDescription').textContent = data.desc;
+
+      const list = document.getElementById('roleWeightsList');
+      list.innerHTML = data.weights.map(w => `
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:4px;">
+            <span>${w.name}</span>
+            <span style="color:${w.color};">${w.pct}% Weight</span>
+          </div>
+          <div style="background:#e2e8f0; height:7px; border-radius:4px; overflow:hidden;">
+            <div style="background:${w.color}; width:${w.pct}%; height:100%;"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      const data = roleData.sde;
+      const list = document.getElementById('roleWeightsList');
+      list.innerHTML = data.weights.map(w => `
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:4px;">
+            <span>${w.name}</span>
+            <span style="color:${w.color};">${w.pct}% Weight</span>
+          </div>
+          <div style="background:#e2e8f0; height:7px; border-radius:4px; overflow:hidden;">
+            <div style="background:${w.color}; width:${w.pct}%; height:100%;"></div>
+          </div>
+        </div>
+      `).join('');
+    });
+  </script>
+</body>
+</html>

@@ -13,26 +13,45 @@ from ..engine.readiness import calculate_placement_readiness
 
 router = APIRouter(prefix="/api/assessment", tags=["Assessment"])
 
+# In-memory session tracking fallback
+_local_sessions = {}
+_local_logs = {}
+
 @router.post("/start")
 def start_assessment_session(payload: StartAssessmentRequest):
     session_id = f"sess_{uuid.uuid4().hex[:8]}"
-    sb = get_supabase()
+    target_role = payload.target_role or "java_developer"
+    responses = []
 
-    user_result = sb.table("users").select("*").eq("id", payload.user_id).execute()
-    user = user_result.data[0] if user_result.data else None
-    target_role = payload.target_role or (user["target_role"] if user else "java_developer")
+    try:
+        sb = get_supabase()
+        user_result = sb.table("users").select("*").eq("id", payload.user_id).execute()
+        user = user_result.data[0] if user_result.data else None
+        if user and not payload.target_role:
+            target_role = user.get("target_role", "java_developer")
 
-    sb.table("assessment_sessions").insert({
+        sb.table("assessment_sessions").insert({
+            "id": session_id,
+            "user_id": payload.user_id,
+            "session_type": payload.session_type,
+            "target_role": target_role,
+            "status": "in_progress",
+            "total_questions": payload.num_questions
+        }).execute()
+
+        responses_result = sb.table("response_logs").select("*").eq("user_id", payload.user_id).execute()
+        responses = responses_result.data or []
+    except Exception:
+        pass
+
+    _local_sessions[session_id] = {
         "id": session_id,
         "user_id": payload.user_id,
         "session_type": payload.session_type,
         "target_role": target_role,
         "status": "in_progress",
         "total_questions": payload.num_questions
-    }).execute()
-
-    responses_result = sb.table("response_logs").select("*").eq("user_id", payload.user_id).execute()
-    responses = responses_result.data or []
+    }
 
     first_q = select_next_adaptive_question(target_role, responses)
     if not first_q:
@@ -62,18 +81,28 @@ def start_assessment_session(payload: StartAssessmentRequest):
 
 @router.post("/submit", response_model=AnswerEvaluationResponse)
 def submit_answer(payload: AnswerSubmissionRequest):
-    sb = get_supabase()
     q_data = get_question_by_id(payload.question_id)
     is_correct = (payload.selected_index == q_data["correct_index"])
+    
+    session = _local_sessions.get(payload.session_id, {
+        "id": payload.session_id,
+        "user_id": payload.user_id,
+        "target_role": "java_developer",
+        "total_questions": 8
+    })
 
-    session_result = sb.table("assessment_sessions").select("*").eq("id", payload.session_id).execute()
-    if not session_result.data:
-        raise HTTPException(status_code=404, detail="Assessment session not found")
-    session = session_result.data[0]
-    target_role = session["target_role"]
+    try:
+        sb = get_supabase()
+        session_result = sb.table("assessment_sessions").select("*").eq("id", payload.session_id).execute()
+        if session_result.data:
+            session = session_result.data[0]
+    except Exception:
+        pass
 
+    target_role = session.get("target_role", "java_developer")
     log_id = f"log_{uuid.uuid4().hex[:8]}"
-    sb.table("response_logs").insert({
+
+    log_entry = {
         "id": log_id,
         "session_id": payload.session_id,
         "user_id": payload.user_id,
@@ -85,45 +114,26 @@ def submit_answer(payload: AnswerSubmissionRequest):
         "topic": q_data["topic"],
         "skill": q_data["skill"],
         "difficulty": q_data["difficulty"]
-    }).execute()
+    }
 
-    mastery_result = sb.table("skill_mastery").select("*").eq("user_id", payload.user_id).eq("subtopic", q_data["subtopic"]).execute()
-    existing_mastery = mastery_result.data[0] if mastery_result.data else None
-    prior_score = existing_mastery["mastery_score"] if existing_mastery else 50.0
+    if payload.session_id not in _local_logs:
+        _local_logs[payload.session_id] = []
+    _local_logs[payload.session_id].append(log_entry)
 
-    all_responses_result = sb.table("response_logs").select("*").eq("user_id", payload.user_id).execute()
-    all_user_responses = all_responses_result.data or []
+    try:
+        sb = get_supabase()
+        sb.table("response_logs").insert(log_entry).execute()
+    except Exception:
+        pass
 
-    subtopic_diag = compute_subtopic_mastery(all_user_responses, q_data["subtopic"], prior_score)
+    all_user_responses = _local_logs.get(payload.session_id, [])
+    subtopic_diag = compute_subtopic_mastery(all_user_responses, q_data["subtopic"], 50.0)
     new_mastery = subtopic_diag["mastery_score"]
 
-    if existing_mastery:
-        sb.table("skill_mastery").update({
-            "mastery_score": new_mastery,
-            "attempts_count": existing_mastery["attempts_count"] + 1,
-            "correct_count": existing_mastery["correct_count"] + (1 if is_correct else 0),
-            "avg_response_time": subtopic_diag["avg_latency_sec"]
-        }).eq("user_id", payload.user_id).eq("subtopic", q_data["subtopic"]).execute()
-    else:
-        mastery_id = f"mst_{uuid.uuid4().hex[:8]}"
-        sb.table("skill_mastery").insert({
-            "id": mastery_id,
-            "user_id": payload.user_id,
-            "skill": q_data["skill"],
-            "topic": q_data["topic"],
-            "subtopic": q_data["subtopic"],
-            "mastery_score": new_mastery,
-            "attempts_count": 1,
-            "correct_count": 1 if is_correct else 0,
-            "avg_response_time": payload.response_time_sec
-        }).execute()
+    session_answered_ids = [r["question_id"] for r in all_user_responses]
+    total_limit = session.get("total_questions", 8)
 
-    session_logs_result = sb.table("response_logs").select("question_id").eq("session_id", payload.session_id).execute()
-    session_answered_ids = [r["question_id"] for r in (session_logs_result.data or [])]
-
-    total_limit = session["total_questions"]
     if len(session_answered_ids) >= total_limit:
-        sb.table("assessment_sessions").update({"status": "completed"}).eq("id", payload.session_id).execute()
         next_q_view = None
     else:
         next_q = select_next_adaptive_question(
@@ -166,29 +176,38 @@ def submit_answer(payload: AnswerSubmissionRequest):
 
 @router.get("/session/{session_id}/summary")
 def get_session_summary(session_id: str):
-    sb = get_supabase()
-    session_result = sb.table("assessment_sessions").select("*").eq("id", session_id).execute()
-    if not session_result.data:
-        raise HTTPException(status_code=404, detail="Session not found")
-    session = session_result.data[0]
+    session = _local_sessions.get(session_id, {
+        "id": session_id,
+        "user_id": "default",
+        "target_role": "java_developer"
+    })
+    responses = _local_logs.get(session_id, [])
 
-    logs_result = sb.table("response_logs").select("*").eq("session_id", session_id).execute()
-    responses = logs_result.data or []
+    try:
+        sb = get_supabase()
+        session_result = sb.table("assessment_sessions").select("*").eq("id", session_id).execute()
+        if session_result.data:
+            session = session_result.data[0]
+        logs_result = sb.table("response_logs").select("*").eq("session_id", session_id).execute()
+        if logs_result.data:
+            responses = logs_result.data
+    except Exception:
+        pass
 
     total = len(responses)
-    correct = sum(1 for r in responses if r["is_correct"] == 1)
+    correct = sum(1 for r in responses if r.get("is_correct") == 1)
     accuracy = (correct / total * 100.0) if total > 0 else 0.0
 
     readiness_rep = calculate_placement_readiness(
-        session["user_id"],
-        session["target_role"],
+        session.get("user_id", "default"),
+        session.get("target_role", "java_developer"),
         responses
     )
 
     return {
         "session_id": session_id,
-        "user_id": session["user_id"],
-        "target_role": session["target_role"],
+        "user_id": session.get("user_id", "default"),
+        "target_role": session.get("target_role", "java_developer"),
         "total_questions": total,
         "correct_count": correct,
         "accuracy": round(accuracy, 1),

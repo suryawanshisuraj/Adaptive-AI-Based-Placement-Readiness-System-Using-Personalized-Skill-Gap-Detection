@@ -51,18 +51,57 @@ if os.path.exists(FRONTEND_DIR):
 def on_startup():
     init_db()
 
+def _serve_page(filename: str):
+    file_path = os.path.join(FRONTEND_DIR, filename)
+    if os.path.exists(file_path):
+        return FileResponse(
+            file_path,
+            media_type="text/html",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
+        )
+    return HTMLResponse(f"<h1>{filename} not found</h1>", status_code=404)
+
 @app.get("/auth", include_in_schema=False)
 def serve_auth():
-    auth_path = os.path.join(FRONTEND_DIR, "auth.html")
-    if os.path.exists(auth_path):
-        return FileResponse(auth_path, media_type="text/html")
-    return HTMLResponse("<h1>auth.html not found</h1>", status_code=404)
+    return _serve_page("auth.html")
+
+@app.get("/landing", include_in_schema=False)
+def serve_landing():
+    return _serve_page("landing.html")
+
+@app.get("/about", include_in_schema=False)
+def serve_about():
+    return _serve_page("about.html")
+
+@app.get("/assessment", include_in_schema=False)
+def serve_assessment():
+    return _serve_page("assessment.html")
+
+@app.get("/interview", include_in_schema=False)
+def serve_interview():
+    return _serve_page("interview.html")
+
+@app.get("/resume", include_in_schema=False)
+def serve_resume():
+    return _serve_page("resume.html")
+
+@app.get("/roadmap", include_in_schema=False)
+def serve_roadmap():
+    return _serve_page("roadmap.html")
+
+@app.get("/404", include_in_schema=False)
+def serve_404():
+    return _serve_page("404.html")
 
 @app.get("/", include_in_schema=False)
 def serve_index():
     index_path = os.path.join(FRONTEND_DIR, "index.html")
     if os.path.exists(index_path):
-        return FileResponse(index_path, media_type="text/html")
+        return FileResponse(
+            index_path,
+            media_type="text/html",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
+        )
     return {
         "status": "online",
         "system": "Adaptive AI-Based Placement Readiness System",
@@ -72,3 +111,4 @@ def serve_index():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "placement-readiness-ai"}
+

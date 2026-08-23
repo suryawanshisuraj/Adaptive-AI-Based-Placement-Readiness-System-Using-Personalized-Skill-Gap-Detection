@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Page Not Found | Adaptive AI Placement System</title>
+  <meta name="description" content="The requested page could not be found. Navigate back to your placement readiness dashboard or practice arena.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css?v=4.0">
+  <style>
+    body {
+      overflow-y: auto !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #f8fafc;
+      padding: 24px;
+    }
+    .error-card {
+      max-width: 620px;
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 48px 36px;
+      text-align: center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+    }
+    .error-code {
+      font-size: 84px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      background: linear-gradient(135deg, #4f46e5, #0284c7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin-bottom: 12px;
+      font-family: var(--font-mono);
+    }
+    .error-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .error-desc {
+      font-size: 14.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .quick-links-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .quick-link-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      color: var(--text-primary);
+      font-size: 13.5px;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+    .quick-link-btn:hover {
+      background: #eef2ff;
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="error-card">
+    <div style="font-size: 48px; margin-bottom: 12px;">🧭</div>
+    <div class="error-code">404</div>
+    <h1 class="error-title">Destination Route Not Found</h1>
+    <p class="error-desc">
+      The assessment route or intelligence module you requested has moved, or you may have mistyped the URL path.
+    </p>
+
+    <div class="quick-links-grid">
+      <a href="/" class="quick-link-btn">
+        <span>📊</span>
+        <span>Placement Dashboard</span>
+      </a>
+      <a href="/assessment" class="quick-link-btn">
+        <span>🎯</span>
+        <span>Practice Arena</span>
+      </a>
+      <a href="/landing" class="quick-link-btn">
+        <span>🚀</span>
+        <span>System Landing Page</span>
+      </a>
+      <a href="/roadmap" class="quick-link-btn">
+        <span>🗺️</span>
+        <span>5-Day Roadmap</span>
+      </a>
+    </div>
+
+    <div>
+      <a href="/" class="btn-primary" style="display: inline-flex; padding: 12px 28px; font-size: 14px; text-decoration: none; border-radius: var(--radius-full);">
+        ← Return to Main Workspace
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

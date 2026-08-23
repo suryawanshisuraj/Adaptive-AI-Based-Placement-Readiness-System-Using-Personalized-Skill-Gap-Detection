@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adaptive Practice & Diagnostic Arena — Adaptive AI Placement</title>
+  <meta name="description" content="Take adaptive diagnostic assessments with real-time Bayesian difficulty scaling, response latency tracking, and instant explainable feedback.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css?v=4.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      overflow-y: auto !important;
+      display: block !important;
+      background-color: #f8fafc;
+    }
+    .arena-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+    }
+    .arena-container {
+      max-width: 960px;
+      margin: 32px auto 60px;
+      padding: 0 20px;
+    }
+    .arena-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-card);
+    }
+    .timer-badge {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      background: #eef2ff;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .question-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 24px;
+    }
+    .q-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .badge-topic {
+      background: #f1f5f9;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+    }
+    .badge-diff {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .diff-easy { background: #dcfce7; color: #15803d; }
+    .diff-medium { background: #fef3c7; color: #b45309; }
+    .diff-hard { background: #fee2e2; color: #b91c1c; }
+
+    .q-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .option-btn {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: #ffffff;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      text-align: left;
+      font-size: 15px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-family: var(--font-sans);
+    }
+    .option-btn:hover {
+      border-color: var(--primary);
+      background: #f8fafc;
+    }
+    .option-btn.selected {
+      border-color: var(--primary);
+      background: #eef2ff;
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+    .option-letter {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .option-btn.selected .option-letter {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .arena-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border-color);
+      padding-top: 20px;
+    }
+
+    /* Explanation Modal / Box */
+    .solution-box {
+      display: none;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .solution-box.active {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="arena-header">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px;">🧠</div>
+        <span style="font-weight: 800; font-size: 15px; color: var(--text-primary);">Adaptive AI</span>
+      </a>
+      <span style="color: var(--border-color);">/</span>
+      <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Adaptive Practice Arena</span>
+    </div>
+
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <a href="/" class="btn-secondary" style="padding: 6px 14px; font-size: 13px; text-decoration: none;">Exit to Dashboard</a>
+      <button id="endTestBtn" class="btn-primary" style="padding: 6px 16px; font-size: 13px;" onclick="finishTest()">Finish Assessment</button>
+    </div>
+  </header>
+
+  <main class="arena-container">
+    
+    <!-- Status / Progress Bar -->
+    <div class="arena-status-bar">
+      <div>
+        <span style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Diagnostic Session</span>
+        <h4 id="sessionTitle" style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-top: 2px;">Question <span id="qCurrentIndex">1</span> of <span id="qTotalCount">15</span></h4>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div class="timer-badge">
+          <span>⏱️</span>
+          <span id="questionTimer">00:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question Container -->
+    <div class="question-card" id="questionCard">
+      <div class="q-meta-row">
+        <span class="badge-topic" id="badgeTopic">SQL • Window Functions</span>
+        <span class="badge-diff diff-medium" id="badgeDiff">Medium Difficulty</span>
+      </div>
+
+      <div class="q-text" id="questionPrompt">
+        In a relational database, what is the key behavioral difference between <code>RANK()</code> and <code>DENSE_RANK()</code> when duplicate values are encountered in the <code>ORDER BY</code> clause?
+      </div>
+
+      <div class="options-grid" id="optionsContainer">
+        <button class="option-btn" onclick="selectOption(0)">
+          <span class="option-letter">A</span>
+          <span>RANK() leaves gaps in the ranking sequence for duplicate values, while DENSE_RANK() does not skip any ranks.</span>
+        </button>
+        <button class="option-btn" onclick="selectOption(1)">
+          <span class="option-letter">B</span>
+          <span>DENSE_RANK() sorts values in descending order by default, whereas RANK() uses ascending order.</span>
+        </button>
+        <button class="option-btn" onclick="selectOption(2)">
+          <span class="option-letter">C</span>
+          <span>RANK() can only be used with integers, while DENSE_RANK() supports strings and dates.</span>
+        </button>
+        <button class="option-btn" onclick="selectOption(3)">
+          <span class="option-letter">D</span>
+          <span>Both functions produce identical rankings, but DENSE_RANK() executes in $O(1)$ memory.</span>
+        </button>
+      </div>
+
+      <div class="arena-action-bar">
+        <button class="btn-secondary" onclick="toggleExplanation()" id="hintBtn">💡 View Explanation</button>
+        <button class="btn-primary" onclick="submitAndNext()" id="submitBtn" style="padding: 10px 24px;">Submit & Next Question →</button>
+      </div>
+
+      <!-- Explanation Box -->
+      <div class="solution-box" id="solutionBox">
+        <h4 style="font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 6px;">🧠 Explainable AI Diagnostic Notes:</h4>
+        <p id="explanationText" style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0;">
+          <strong>Correct Answer: A.</strong> <code>RANK()</code> increments the ranking counter by the number of ties (leaving gaps like 1, 2, 2, 4), whereas <code>DENSE_RANK()</code> continues strictly sequentially (1, 2, 2, 3).
+        </p>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let currentQuestionIndex = 0;
+    let selectedOptionIndex = null;
+    let timerSeconds = 0;
+    let timerInterval = null;
+
+    const sampleQuestions = [
+      {
+        topic: "SQL • Window Functions",
+        diff: "Medium",
+        diffClass: "diff-medium",
+        prompt: "In a relational database, what is the key behavioral difference between RANK() and DENSE_RANK() when duplicate values are encountered in the ORDER BY clause?",
+        options: [
+          "RANK() leaves gaps in the ranking sequence for duplicate values, while DENSE_RANK() does not skip any ranks.",
+          "DENSE_RANK() sorts values in descending order by default, whereas RANK() uses ascending order.",
+          "RANK() can only be used with integers, while DENSE_RANK() supports strings and dates.",
+          "Both functions produce identical rankings, but DENSE_RANK() executes in O(1) memory."
+        ],
+        correct: 0,
+        explanation: "Correct Answer: A. RANK() increments the rank counter by the number of ties (leaving gaps like 1, 2, 2, 4), whereas DENSE_RANK() continues sequentially (1, 2, 2, 3)."
+      },
+      {
+        topic: "DSA • Dynamic Programming",
+        diff: "Hard",
+        diffClass: "diff-hard",
+        prompt: "What is the optimal time and space complexity of the 0/1 Knapsack problem using dynamic programming with state compression?",
+        options: [
+          "Time: O(N * W), Space: O(W)",
+          "Time: O(2^N), Space: O(N)",
+          "Time: O(N log N), Space: O(1)",
+          "Time: O(N * W), Space: O(N * W)"
+        ],
+        correct: 0,
+        explanation: "Correct Answer: A. By iterating the capacity array backwards, we only require a 1D DP array of size W, achieving O(N*W) time and O(W) space."
+      },
+      {
+        topic: "Java • Concurrency",
+        diff: "Medium",
+        diffClass: "diff-medium",
+        prompt: "What happens when you declare a variable as 'volatile' in Java?",
+        options: [
+          "It guarantees visibility of changes across threads by reading and writing directly to main memory, but does NOT guarantee atomicity for compound operations.",
+          "It locks the entire class so only one thread can execute any method simultaneously.",
+          "It makes the object immutable and prevents garbage collection.",
+          "It automatically creates a deep clone of the object for every new thread."
+        ],
+        correct: 0,
+        explanation: "Correct Answer: A. Volatile prevents thread-local CPU caching and instruction reordering, ensuring visibility but not compound atomicity (like count++)."
+      }
+    ];
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerSeconds = 0;
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const secs = String(timerSeconds % 60).padStart(2, '0');
+        document.getElementById('questionTimer').textContent = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function loadQuestion(index) {
+      if (index >= sampleQuestions.length) {
+        finishTest();
+        return;
+      }
+      const q = sampleQuestions[index];
+      document.getElementById('qCurrentIndex').textContent = index + 1;
+      document.getElementById('qTotalCount').textContent = sampleQuestions.length;
+      document.getElementById('badgeTopic').textContent = q.topic;
+      
+      const badgeDiff = document.getElementById('badgeDiff');
+      badgeDiff.textContent = `${q.diff} Difficulty`;
+      badgeDiff.className = `badge-diff ${q.diffClass}`;
+
+      document.getElementById('questionPrompt').innerHTML = q.prompt;
+      
+      const container = document.getElementById('optionsContainer');
+      container.innerHTML = q.options.map((opt, i) => `
+        <button class="option-btn" onclick="selectOption(${i})">
+          <span class="option-letter">${String.fromCharCode(65 + i)}</span>
+          <span>${opt}</span>
+        </button>
+      `).join('');
+
+      selectedOptionIndex = null;
+      document.getElementById('solutionBox').classList.remove('active');
+      document.getElementById('explanationText').innerHTML = q.explanation;
+      startTimer();
+    }
+
+    function selectOption(index) {
+      selectedOptionIndex = index;
+      const btns = document.querySelectorAll('.option-btn');
+      btns.forEach((b, i) => {
+        if (i === index) b.classList.add('selected');
+        else b.classList.remove('selected');
+      });
+    }
+
+    function toggleExplanation() {
+      document.getElementById('solutionBox').classList.toggle('active');
+    }
+
+    function submitAndNext() {
+      if (selectedOptionIndex === null) {
+        alert("Please select an answer before continuing.");
+        return;
+      }
+      currentQuestionIndex++;
+      loadQuestion(currentQuestionIndex);
+    }
+
+    function finishTest() {
+      clearInterval(timerInterval);
+      alert("🎉 Diagnostic Assessment Completed! Redirecting to Placement Readiness Dashboard to analyze your Bayesian skill gaps.");
+      window.location.href = "/";
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadQuestion(0);
+    });
+  </script>
+
+</body>
+</html>

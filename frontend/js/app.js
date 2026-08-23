@@ -34,11 +34,66 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadInitialData();
 });
 
-function setupEventListeners() {
-  // Display user name in topbar
-  const _userName = localStorage.getItem("placement_user_name") || "Student";
+function updateUserInfoUI() {
+  const userName = localStorage.getItem("placement_user_name") || "Student";
+  const userEmail = localStorage.getItem("placement_user_email") || "";
+
+  // Derive up to 2 uppercase initials
+  const initials = userName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(word => word[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "ST";
+
+  // Topbar user name
   const topbarNameEl = document.getElementById("topbarUserName");
-  if (topbarNameEl) topbarNameEl.textContent = `👤 ${_userName}`;
+  if (topbarNameEl) topbarNameEl.textContent = `👤 ${userName}`;
+
+  // Sidebar user avatar, name, and account status/email
+  const sidebarAvatar = document.getElementById("sidebarUserAvatar");
+  if (sidebarAvatar) sidebarAvatar.textContent = initials;
+  
+  const sidebarName = document.getElementById("sidebarUserName");
+  if (sidebarName) sidebarName.textContent = userName;
+
+  const sidebarRole = document.getElementById("sidebarUserRole");
+  if (sidebarRole) {
+    sidebarRole.textContent = userEmail ? userEmail.split("@")[0] : "Active Candidate";
+    sidebarRole.title = userEmail ? `Logged in as: ${userEmail}` : "Logged in candidate";
+  }
+
+  // Profile Tab Elements
+  const profileAvatar = document.getElementById("profileUserAvatar");
+  if (profileAvatar) profileAvatar.textContent = initials;
+
+  const profileNameTitle = document.getElementById("profileUserNameTitle");
+  if (profileNameTitle) profileNameTitle.textContent = userName;
+
+  const profileNameInput = document.getElementById("profileNameInput");
+  if (profileNameInput && !profileNameInput.matches(":focus")) {
+    profileNameInput.value = userName;
+  }
+
+  const profileEmail = document.getElementById("profileUserEmail");
+  if (profileEmail && userEmail) {
+    profileEmail.textContent = userEmail;
+  }
+}
+
+function setupEventListeners() {
+  // Update user name and avatar across all UI locations
+  updateUserInfoUI();
+
+  // Clicking on the sidebar user spot opens the profile tab directly
+  const sidebarUserCard = document.getElementById("sidebarUserCard");
+  if (sidebarUserCard) {
+    sidebarUserCard.addEventListener("click", () => {
+      switchTab("tab-profile");
+    });
+  }
 
   // Navigation tabs
 
@@ -706,22 +761,18 @@ async function executeResearchSimulation() {
 }
 
 function showToast(msg) {
+  // Remove existing toasts
+  document.querySelectorAll(".toast-notification").forEach(el => el.remove());
+
   const toast = document.createElement("div");
-  toast.style.position = "fixed";
-  toast.style.bottom = "24px";
-  toast.style.right = "24px";
-  toast.style.background = "#1e1b4b";
-  toast.style.color = "#c7d2fe";
-  toast.style.border = "1px solid #6366f1";
-  toast.style.padding = "12px 20px";
-  toast.style.borderRadius = "8px";
-  toast.style.boxShadow = "0 10px 25px rgba(0,0,0,0.5)";
-  toast.style.zIndex = "9999";
-  toast.style.fontSize = "13px";
-  toast.style.fontWeight = "600";
-  toast.innerText = msg;
+  toast.className = "toast-notification";
+  toast.innerHTML = `<span>✨</span> <span>${msg}</span>`;
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3500);
+
+  setTimeout(() => {
+    toast.classList.add("hide");
+    setTimeout(() => toast.remove(), 260);
+  }, 3200);
 }
 
 /* =========================================================================
@@ -1032,6 +1083,8 @@ const SKILL_CATEGORIES = [
 ];
 
 function initProfileView() {
+  updateUserInfoUI();
+
   const select = document.getElementById("profileRoleSelect");
   if (select && select.children.length === 0) {
     for (const [id, info] of Object.entries(state.roles)) {
@@ -1041,6 +1094,14 @@ function initProfileView() {
       if (id === state.currentRole) opt.selected = true;
       select.appendChild(opt);
     }
+  }
+
+  const nameInput = document.getElementById("profileNameInput");
+  if (nameInput && !nameInput.dataset.boundEnter) {
+    nameInput.dataset.boundEnter = "true";
+    nameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") saveProfileChanges();
+    });
   }
 
   renderProfileSliders();
@@ -1066,15 +1127,22 @@ function renderProfileSliders() {
 }
 
 async function saveProfileChanges() {
+  const nameInput = document.getElementById("profileNameInput");
+  const newName = nameInput?.value?.trim();
+  if (newName) {
+    localStorage.setItem("placement_user_name", newName);
+  }
+
   const newRole = document.getElementById("profileRoleSelect")?.value || state.currentRole;
   state.currentRole = newRole;
   await API.updateTargetRole(state.currentUserId, newRole);
   await refreshAllViews();
+  updateUserInfoUI();
 
   const userBadge = document.getElementById("profileUserRoleBadge");
   if (userBadge) userBadge.innerText = state.roles[newRole]?.title || newRole;
 
-  showToast(`Profile changes saved! Target role updated to ${state.roles[newRole]?.title || newRole}`);
+  showToast(`Profile updated successfully for ${newName || "user"}!`);
 }
 
 // ── Sign Out ─────────────────────────────────────────────────────────────────

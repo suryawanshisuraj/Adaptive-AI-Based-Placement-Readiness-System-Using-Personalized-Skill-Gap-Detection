@@ -13,15 +13,15 @@ const Charts = {
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (score / 100) * circumference;
 
-    let strokeColor = "#f43f5e"; // Rose (<50)
-    if (score >= 80) strokeColor = "#10b981"; // Emerald
-    else if (score >= 65) strokeColor = "#6366f1"; // Indigo
-    else if (score >= 50) strokeColor = "#f59e0b"; // Amber
+    let strokeColor = "#e11d48"; // Rose (<50)
+    if (score >= 80) strokeColor = "#059669"; // Emerald
+    else if (score >= 65) strokeColor = "#4f46e5"; // Indigo
+    else if (score >= 50) strokeColor = "#d97706"; // Amber
 
     dialContainer.innerHTML = `
       <svg width="130" height="130" viewBox="0 0 130 130">
-        <circle cx="65" cy="65" r="${radius}" stroke="#1f2937" stroke-width="10" fill="none" />
-        <circle cx="65" cy="65" r="${radius}" stroke="${strokeColor}" stroke-width="10" 
+        <circle cx="65" cy="65" r="${radius}" stroke="#e2e8f0" stroke-width="9" fill="none" />
+        <circle cx="65" cy="65" r="${radius}" stroke="${strokeColor}" stroke-width="9" 
                 stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" 
                 stroke-linecap="round" fill="none"
                 style="transition: stroke-dashoffset 1s ease-in-out;"
@@ -53,19 +53,21 @@ const Charts = {
           {
             label: "Candidate Mastery (%)",
             data: dataScores,
-            backgroundColor: "rgba(99, 102, 241, 0.25)",
-            borderColor: "#6366f1",
-            pointBackgroundColor: "#818cf8",
+            backgroundColor: "rgba(79, 70, 229, 0.15)",
+            borderColor: "#4f46e5",
+            pointBackgroundColor: "#4f46e5",
             pointBorderColor: "#fff",
+            pointHoverBackgroundColor: "#fff",
+            pointHoverBorderColor: "#4f46e5",
             borderWidth: 2
           },
           {
             label: "Role Importance Weight (%)",
             data: dataWeights,
-            backgroundColor: "rgba(6, 182, 212, 0.15)",
-            borderColor: "#06b6d4",
+            backgroundColor: "rgba(2, 132, 199, 0.1)",
+            borderColor: "#0284c7",
             borderDash: [4, 4],
-            pointBackgroundColor: "#06b6d4",
+            pointBackgroundColor: "#0284c7",
             borderWidth: 1.5
           }
         ]
@@ -75,11 +77,11 @@ const Charts = {
         maintainAspectRatio: false,
         scales: {
           r: {
-            angleLines: { color: "rgba(255, 255, 255, 0.08)" },
-            grid: { color: "rgba(255, 255, 255, 0.08)" },
+            angleLines: { color: "#e2e8f0" },
+            grid: { color: "#e2e8f0" },
             pointLabels: {
-              color: "#94a3b8",
-              font: { size: 11, family: "Inter", weight: "600" }
+              color: "#334155",
+              font: { size: 11.5, family: "Inter", weight: "600" }
             },
             ticks: {
               backdropColor: "transparent",
@@ -92,7 +94,7 @@ const Charts = {
         },
         plugins: {
           legend: {
-            labels: { color: "#cbd5e1", font: { size: 11, family: "Inter" } }
+            labels: { color: "#334155", font: { size: 11, family: "Inter", weight: "500" } }
           }
         }
       }
@@ -110,7 +112,7 @@ const Charts = {
     const labels = comparisons.map(c => c.role_title);
     const scores = comparisons.map(c => c.readiness_score);
     const backgroundColors = comparisons.map(c => 
-      c.is_current_target ? "#6366f1" : "rgba(148, 163, 184, 0.35)"
+      c.is_current_target ? "#4f46e5" : "#cbd5e1"
     );
 
     roleComparisonChart = new Chart(ctx, {
@@ -131,14 +133,14 @@ const Charts = {
         indexAxis: 'y',
         scales: {
           x: {
-            grid: { color: "rgba(255, 255, 255, 0.06)" },
-            ticks: { color: "#94a3b8" },
+            grid: { color: "#f1f5f9" },
+            ticks: { color: "#64748b" },
             min: 0,
             max: 100
           },
           y: {
             grid: { display: false },
-            ticks: { color: "#cbd5e1", font: { size: 11, weight: "500" } }
+            ticks: { color: "#1e293b", font: { size: 11.5, weight: "600" } }
           }
         },
         plugins: {
@@ -164,11 +166,11 @@ const Charts = {
             {
               label: "Group B (Adaptive AI System)",
               data: traj.group_b_curve,
-              borderColor: "#10b981",
-              backgroundColor: "rgba(16, 185, 129, 0.1)",
+              borderColor: "#059669",
+              backgroundColor: "rgba(5, 150, 105, 0.1)",
               fill: true,
               tension: 0.3,
-              borderWidth: 3,
+              borderWidth: 2.5,
               pointRadius: 4
             },
             {
@@ -187,19 +189,19 @@ const Charts = {
           maintainAspectRatio: false,
           scales: {
             y: {
-              title: { display: true, text: "Placement Readiness Score (%)", color: "#94a3b8" },
-              grid: { color: "rgba(255, 255, 255, 0.06)" },
-              ticks: { color: "#cbd5e1" },
+              title: { display: true, text: "Placement Readiness Score (%)", color: "#64748b" },
+              grid: { color: "#f1f5f9" },
+              ticks: { color: "#475569" },
               min: 30,
               max: 100
             },
             x: {
-              grid: { color: "rgba(255, 255, 255, 0.06)" },
-              ticks: { color: "#94a3b8" }
+              grid: { color: "#f1f5f9" },
+              ticks: { color: "#64748b" }
             }
           },
           plugins: {
-            legend: { labels: { color: "#cbd5e1", font: { family: "Inter" } } }
+            legend: { labels: { color: "#334155", font: { family: "Inter", weight: "500" } } }
           }
         }
       });
@@ -219,13 +221,13 @@ const Charts = {
             {
               label: "Group A (Control - Fixed)",
               data: [mA.pre_test_mean, mA.post_test_mean, mA.weak_topic_resolution_rate_pct],
-              backgroundColor: "rgba(148, 163, 184, 0.5)",
+              backgroundColor: "#cbd5e1",
               borderRadius: 6
             },
             {
               label: "Group B (Adaptive AI)",
               data: [mB.pre_test_mean, mB.post_test_mean, mB.weak_topic_resolution_rate_pct],
-              backgroundColor: "rgba(16, 185, 129, 0.8)",
+              backgroundColor: "#059669",
               borderRadius: 6
             }
           ]
@@ -235,18 +237,18 @@ const Charts = {
           maintainAspectRatio: false,
           scales: {
             y: {
-              grid: { color: "rgba(255, 255, 255, 0.06)" },
-              ticks: { color: "#94a3b8" },
+              grid: { color: "#f1f5f9" },
+              ticks: { color: "#64748b" },
               min: 0,
               max: 100
             },
             x: {
               grid: { display: false },
-              ticks: { color: "#cbd5e1" }
+              ticks: { color: "#334155", font: { weight: "600" } }
             }
           },
           plugins: {
-            legend: { labels: { color: "#cbd5e1" } }
+            legend: { labels: { color: "#334155" } }
           }
         }
       });
